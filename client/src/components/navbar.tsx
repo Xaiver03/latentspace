@@ -3,8 +3,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Atom, Menu, X, User, Settings, LogOut } from "lucide-react";
+import { Menu, X, User, Settings, LogOut } from "lucide-react";
 import { useState } from "react";
+import QijiLogo from "@/components/qiji-logo";
 
 export default function Navbar() {
   const { user, logoutMutation } = useAuth();
@@ -31,10 +32,12 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center space-x-2 cursor-pointer">
-              <Atom className="text-primary-blue text-2xl w-8 h-8" />
-              <h1 className="text-xl font-bold text-gray-900">潜空间</h1>
-              <span className="text-sm text-gray-500 hidden sm:inline">Researcher Founder Platform</span>
+            <div className="flex items-center space-x-3 cursor-pointer">
+              <QijiLogo size={32} />
+              <div className="flex flex-col">
+                <h1 className="text-xl font-bold text-gray-900">潜空间</h1>
+                <span className="text-xs text-gray-500 hidden sm:inline">Researcher Founder Platform</span>
+              </div>
             </div>
           </Link>
           
