@@ -4,9 +4,23 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertEventSchema, insertAgentProductSchema, insertCofounderApplicationSchema, insertMessageSchema } from "@shared/schema";
 import { z } from "zod";
+import path from "path";
+import fs from "fs";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
+
+  // Serve the landing page as the main index
+  app.get("/", async (req, res) => {
+    try {
+      const landingPath = path.resolve(import.meta.dirname, "..", "landing.html");
+      const landingContent = await fs.promises.readFile(landingPath, "utf-8");
+      res.setHeader("Content-Type", "text/html");
+      res.send(landingContent);
+    } catch (error) {
+      res.status(500).send("Landing page not found");
+    }
+  });
 
   // Events routes
   app.get("/api/events", async (req, res) => {
@@ -271,6 +285,12 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch users" });
     }
+  });
+
+  // Serve the React platform application at /platform/*
+  app.get("/platform*", (req, res, next) => {
+    // Let the vite middleware handle platform routes
+    next();
   });
 
   const httpServer = createServer(app);

@@ -93,6 +93,7 @@ This is a full-stack web application called "潜空间" (Latent Space) that serv
 
 ```
 Changelog:
+- July 09, 2025. Integrated animated landing page as entry point with /platform routing
 - July 09, 2025. Integrated 奇绩 logo (blue version) into navbar and platform branding
 - July 08, 2025. Initial setup
 ```

@@ -21,9 +21,9 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "/events", label: "活动中心" },
-    { href: "/community", label: "内容社区" },
-    { href: "/matching", label: "创始人匹配" },
+    { href: "/platform/events", label: "活动中心" },
+    { href: "/platform/community", label: "内容社区" },
+    { href: "/platform/matching", label: "创始人匹配" },
   ];
 
   return (
@@ -31,7 +31,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/">
+          <Link href="/platform">
             <div className="flex items-center space-x-3 cursor-pointer">
               <QijiLogo size={32} />
               <div className="flex flex-col">
@@ -61,11 +61,11 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center space-x-4">
                 {user.role === "admin" && (
-                  <Link href="/admin">
+                  <Link href="/platform/admin">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={isActive("/admin") ? "text-primary-blue" : "text-gray-700"}
+                      className={isActive("/platform/admin") ? "text-primary-blue" : "text-gray-700"}
                     >
                       <Settings className="w-4 h-4 mr-2" />
                       管理
@@ -105,12 +105,12 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-4">
-                <Link href="/auth">
+                <Link href="/platform/auth">
                   <Button variant="ghost" className="text-gray-700 hover:text-primary-blue">
                     登录
                   </Button>
                 </Link>
-                <Link href="/auth">
+                <Link href="/platform/auth">
                   <Button className="bg-primary-blue text-white hover:bg-primary-dark">
                     注册
                   </Button>
@@ -151,12 +151,12 @@ export default function Navbar() {
               
               {!user && (
                 <div className="flex flex-col space-y-2 px-3 pt-4 border-t border-gray-200">
-                  <Link href="/auth">
+                  <Link href="/platform/auth">
                     <Button variant="ghost" className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
                       登录
                     </Button>
                   </Link>
-                  <Link href="/auth">
+                  <Link href="/platform/auth">
                     <Button className="w-full bg-primary-blue hover:bg-primary-dark" onClick={() => setIsMobileMenuOpen(false)}>
                       注册
                     </Button>

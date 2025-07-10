@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>奇绩创坛 - 潜空间</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: white;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+
+      .header,
+      .footer {
+        text-align: center;
+        color: #007aff;
+        font-weight: bold;
+        font-size: 16px;
+        padding: 12px;
+      }
+
+      .footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+      }
+
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+      }
+
+      .latent-text {
+        position: absolute;
+        bottom: 80px;
+        width: 100%;
+        text-align: center;
+        font-size: 48px;
+        color: #007aff;
+        letter-spacing: 2rem;
+        opacity: 1;
+        transition: opacity 2s ease-out;
+      }
+
+      .enter-button {
+        position: absolute;
+        left: 50%;
+        top: 70%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 20px;
+        letter-spacing: 20px;
+        background: #007aff;
+        padding: 20px 60px;
+        border-radius: 40px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 0 0 rgba(0, 122, 255, 0);
+        transition: all 0.4s ease;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .enter-button:hover {
+        box-shadow: 0 0 30px rgba(0, 122, 255, 0.6);
+        background: #007aff;
+      }
+
+      .enter-button.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">奇绩创坛</div>
+    <canvas id="latentCanvas"></canvas>
+    <div class="latent-text" id="latentText">潜 空 间</div>
+    <div class="enter-button" id="enterButton">enter</div>
+    <div class="footer">MIRACLEPLUS</div>
+
+    <script>
+      const canvas = document.getElementById("latentCanvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const PARTICLE_COUNT = 1000;
+      const particles = [];
+      let mouse = { x: null, y: null };
+      const INTERACTION_RADIUS = 100;
+
+      const barData = [
+        { x: -216, h: 280 },
+        { x: -168, h: 260 },
+        { x: -120, h: 220 },
+        { x: -72, h: 180 },
+        { x: -24, h: 140 },
+        { x: 24, h: 180 },
+        { x: 72, h: 220 },
+        { x: 120, h: 260 },
+        { x: 168, h: 280 },
+      ];
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          tx: 0,
+          ty: 0,
+          color: "#007aff",
+        });
+      }
+
+      function assignTargets() {
+        const scale = 1.2; // scale logo height and spacing
+        const particlesPerBar = Math.floor(particles.length / barData.length);
+        let pIndex = 0;
+        for (let i = 0; i < barData.length; i++) {
+          const bar = barData[i];
+          const baseX = canvas.width / 2 + bar.x * scale;
+          const baseY = canvas.height * 0.55; // fixed baseline position
+          const scaledHeight = bar.h * scale;
+          for (let j = 0; j < particlesPerBar; j++) {
+            if (pIndex >= particles.length) break;
+            const randY = Math.random() * scaledHeight;
+            particles[pIndex].tx = baseX;
+            particles[pIndex].ty = baseY - randY;
+            pIndex++;
+          }
+        }
+      }
+
+      assignTargets();
+
+      function updateParticles() {
+        for (let p of particles) {
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < INTERACTION_RADIUS) {
+            const angle = Math.atan2(dy, dx);
+            const force = (INTERACTION_RADIUS - dist) / INTERACTION_RADIUS;
+            const repelX = Math.cos(angle) * force * 10;
+            const repelY = Math.sin(angle) * force * 10;
+            p.x += repelX;
+            p.y += repelY;
+          } else {
+            p.x += (p.tx - p.x) * 0.05;
+            p.y += (p.ty - p.y) * 0.05;
+          }
+        }
+      }
+
+      function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let p of particles) {
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function animate() {
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+
+      canvas.addEventListener("mousemove", (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        mouse.x = null;
+        mouse.y = null;
+      });
+
+      const latentText = document.getElementById("latentText");
+      const enterButton = document.getElementById("enterButton");
+
+      setTimeout(() => {
+        latentText.style.opacity = 0;
+      }, 3000);
+
+      setTimeout(() => {
+        enterButton.classList.add("show");
+      }, 5500);
+
+      enterButton.addEventListener("click", () => {
+        window.location.href = "/platform";
+      });
+    </script>
+  </body>
+</html>

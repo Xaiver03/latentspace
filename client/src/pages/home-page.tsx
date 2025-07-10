@@ -39,13 +39,13 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {user ? (
-                <Link href="/events">
+                <Link href="/platform/events">
                   <Button size="lg" className="bg-primary-blue hover:bg-primary-dark">
                     开始探索
                   </Button>
                 </Link>
               ) : (
-                <Link href="/auth">
+                <Link href="/platform/auth">
                   <Button size="lg" className="bg-primary-blue hover:bg-primary-dark">
                     开始探索
                   </Button>
@@ -114,7 +114,7 @@ export default function HomePage() {
                     网络聚会
                   </li>
                 </ul>
-                <Link href="/events">
+                <Link href="/platform/events">
                   <Button className="w-full bg-primary-blue hover:bg-primary-dark">
                     查看活动
                   </Button>
@@ -148,7 +148,7 @@ export default function HomePage() {
                     技术讨论
                   </li>
                 </ul>
-                <Link href="/community">
+                <Link href="/platform/community">
                   <Button className="w-full bg-accent-green hover:bg-green-600">
                     进入社区
                   </Button>
@@ -182,7 +182,7 @@ export default function HomePage() {
                     定期主题推荐
                   </li>
                 </ul>
-                <Link href="/matching">
+                <Link href="/platform/matching">
                   <Button className="w-full bg-accent-amber hover:bg-yellow-600">
                     开始匹配
                   </Button>
@@ -201,7 +201,7 @@ export default function HomePage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-4">近期活动</h2>
               <p className="text-lg text-gray-600">参与前沿技术和创业经验分享</p>
             </div>
-            <Link href="/events">
+            <Link href="/platform/events">
               <Button className="bg-primary-blue hover:bg-primary-dark">
                 查看全部
               </Button>
@@ -229,7 +229,7 @@ export default function HomePage() {
                         <Users className="w-4 h-4 mr-2" />
                         <span>已报名 {event.currentAttendees || 0}人</span>
                       </div>
-                      <Link href="/events">
+                      <Link href="/platform/events">
                         <Button size="sm" className="bg-primary-blue hover:bg-primary-dark">
                           立即报名
                         </Button>
@@ -279,7 +279,7 @@ export default function HomePage() {
                         使用次数: {product.usageCount || 0}
                       </div>
                     </div>
-                    <Link href="/community">
+                    <Link href="/platform/community">
                       <Button className="w-full" disabled={product.status === 'development'}>
                         {product.status === 'development' ? '即将发布' : '立即体验'}
                       </Button>
@@ -307,13 +307,13 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {user ? (
-              <Link href="/matching">
+              <Link href="/platform/matching">
                 <Button size="lg" className="bg-white text-primary-blue hover:bg-gray-100">
                   开始匹配
                 </Button>
               </Link>
             ) : (
-              <Link href="/auth">
+              <Link href="/platform/auth">
                 <Button size="lg" className="bg-white text-primary-blue hover:bg-gray-100">
                   立即注册
                 </Button>
@@ -343,9 +343,9 @@ export default function HomePage() {
             <div>
               <h4 className="text-lg font-semibold mb-4">平台功能</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/events" className="hover:text-white transition-colors">活动中心</Link></li>
-                <li><Link href="/community" className="hover:text-white transition-colors">内容社区</Link></li>
-                <li><Link href="/matching" className="hover:text-white transition-colors">创始人匹配</Link></li>
+                <li><Link href="/platform/events" className="hover:text-white transition-colors">活动中心</Link></li>
+                <li><Link href="/platform/community" className="hover:text-white transition-colors">内容社区</Link></li>
+                <li><Link href="/platform/matching" className="hover:text-white transition-colors">创始人匹配</Link></li>
               </ul>
             </div>
 
