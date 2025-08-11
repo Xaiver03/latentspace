@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -353,59 +354,70 @@ export default function EventsPage() {
         ) : filteredEvents.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className="hover:shadow-xl transition-shadow">
-                {event.imageUrl && (
-                  <div className="h-48 overflow-hidden rounded-t-lg">
-                    <img 
-                      src={event.imageUrl} 
-                      alt={event.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className={getCategoryColor(event.category)}>
-                      {getCategoryLabel(event.category)}
-                    </Badge>
-                    <span className="text-gray-500 text-sm">
-                      {new Date(event.date).toLocaleDateString('zh-CN')}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{event.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">{event.description}</p>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-500 text-sm">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <span>{new Date(event.date).toLocaleString('zh-CN')}</span>
+              <Card key={event.id} className="hover:shadow-xl transition-shadow cursor-pointer">
+                <Link href={`/platform/events/${event.id}`} className="block">
+                  {event.imageUrl && (
+                    <div className="h-48 overflow-hidden rounded-t-lg">
+                      <img 
+                        src={event.imageUrl} 
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    {event.location && (
-                      <div className="flex items-center text-gray-500 text-sm">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        <span>{event.location}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center text-gray-500 text-sm">
-                      <Users className="w-4 h-4 mr-2" />
-                      <span>
-                        已报名 {event.currentAttendees || 0}人
-                        {event.maxAttendees && ` / ${event.maxAttendees}人`}
+                  )}
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge className={getCategoryColor(event.category)}>
+                        {getCategoryLabel(event.category)}
+                      </Badge>
+                      <span className="text-gray-500 text-sm">
+                        {new Date(event.date).toLocaleDateString('zh-CN')}
                       </span>
                     </div>
-                  </div>
-
-                  {user && (
+                    
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{event.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{event.description}</p>
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        <span>{new Date(event.date).toLocaleString('zh-CN')}</span>
+                      </div>
+                      {event.location && (
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          <span>{event.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <Users className="w-4 h-4 mr-2" />
+                        <span>
+                          已报名 {event.currentAttendees || 0}人
+                          {event.maxAttendees && ` / ${event.maxAttendees}人`}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Link>
+                {user && (
+                  <div className="px-6 pb-6 space-y-2">
                     <Button
-                      onClick={() => handleRegister(event.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleRegister(event.id);
+                      }}
                       disabled={registerMutation.isPending}
                       className="w-full bg-primary-blue hover:bg-primary-dark"
                     >
                       {registerMutation.isPending ? "报名中..." : "立即报名"}
                     </Button>
-                  )}
-                </CardContent>
+                    <Link href={`/platform/events/${event.id}`} className="block">
+                      <Button variant="outline" className="w-full">
+                        查看详情
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </Card>
             ))}
           </div>

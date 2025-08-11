@@ -325,7 +325,7 @@ export default function CommunityPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(product.demoUrl, "_blank")}
+                        onClick={() => product.demoUrl && window.open(product.demoUrl, "_blank")}
                         className="flex-1"
                       >
                         <ExternalLink className="w-4 h-4 mr-1" />
@@ -336,7 +336,7 @@ export default function CommunityPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(product.githubUrl, "_blank")}
+                        onClick={() => product.githubUrl && window.open(product.githubUrl, "_blank")}
                         className="flex-1"
                       >
                         <Github className="w-4 h-4 mr-1" />

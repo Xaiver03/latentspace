@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,9 +59,39 @@ export function MatchCard({ candidate, onInterest, onPass }: MatchCardProps) {
   const [answers, setAnswers] = useState<string[]>(['', '', '']);
   const [loading, setLoading] = useState(false);
 
+  // Record interaction mutation
+  const recordInteractionMutation = useMutation({
+    mutationFn: ({ userId, action, metadata }: { userId: number; action: string; metadata?: any }) =>
+      apiRequest("POST", `/api/matches/${userId}/interaction`, { action, metadata }),
+  });
+
+  // Record view when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      recordInteractionMutation.mutate({
+        userId: candidate.id,
+        action: "viewed",
+        metadata: { 
+          matchScore: candidate.matchScore,
+          viewDuration: 2 // Assume 2+ seconds is a meaningful view
+        }
+      });
+    }, 2000); // Record view after 2 seconds
+
+    return () => clearTimeout(timer);
+  }, [candidate.id]);
+
   const expressInterestMutation = useMutation({
-    mutationFn: (userId: number) => 
-      apiRequest("POST", `/api/matches/${userId}/interest`),
+    mutationFn: async (userId: number) => {
+      // Record the like interaction
+      await recordInteractionMutation.mutateAsync({ 
+        userId, 
+        action: "liked", 
+        metadata: { matchScore: candidate.matchScore } 
+      });
+      // Then express interest
+      return apiRequest("POST", `/api/matches/${userId}/interest`);
+    },
     onSuccess: () => {
       toast({
         title: "表达兴趣成功",
@@ -227,7 +257,14 @@ export function MatchCard({ candidate, onInterest, onPass }: MatchCardProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onPass(candidate.id)}
+              onClick={async () => {
+                await recordInteractionMutation.mutateAsync({ 
+                  userId: candidate.id, 
+                  action: "passed",
+                  metadata: { matchScore: candidate.matchScore }
+                });
+                onPass(candidate.id);
+              }}
               className="flex-1 border-gray-300 hover:bg-gray-50"
             >
               <X className="w-4 h-4 mr-2" />

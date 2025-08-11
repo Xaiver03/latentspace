@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useWebSocket } from "@/hooks/use-websocket";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
-import { Send, MessageCircle, User } from "lucide-react";
+import { Send, MessageCircle, User, Circle, Clock, Wifi, WifiOff } from "lucide-react";
 
 interface Message {
   id: number;
@@ -62,9 +63,12 @@ const apiRequest = async (method: string, url: string, data?: any) => {
 export function MessagesPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isConnected, sendMessage, sendTypingIndicator, isUserOnline, getUserLastSeen } = useWebSocket();
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
     queryKey: ["/api/messages/conversations"],
@@ -79,12 +83,23 @@ export function MessagesPage() {
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: ({ receiverId, content }: { receiverId: number; content: string }) =>
-      apiRequest("POST", "/api/messages", { receiverId, content }),
+    mutationFn: ({ receiverId, content }: { receiverId: number; content: string }) => {
+      if (isConnected) {
+        // Use WebSocket for real-time messaging
+        sendMessage(receiverId, content);
+        return Promise.resolve({ success: true });
+      } else {
+        // Fallback to HTTP if WebSocket is not connected
+        return apiRequest("POST", "/api/messages", { receiverId, content });
+      }
+    },
     onSuccess: () => {
       setNewMessage("");
-      queryClient.invalidateQueries({ queryKey: ["/api/messages", selectedUserId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/messages/conversations"] });
+      if (!isConnected) {
+        // Only manually invalidate if using HTTP fallback
+        queryClient.invalidateQueries({ queryKey: ["/api/messages", selectedUserId] });
+        queryClient.invalidateQueries({ queryKey: ["/api/messages/conversations"] });
+      }
     },
     onError: (error: any) => {
       toast({
@@ -107,11 +122,52 @@ export function MessagesPage() {
     e.preventDefault();
     if (!selectedUserId || !newMessage.trim()) return;
     
+    // Stop typing indicator
+    if (isTyping && selectedUserId) {
+      sendTypingIndicator(selectedUserId, false);
+      setIsTyping(false);
+    }
+    
     sendMessageMutation.mutate({
       receiverId: selectedUserId,
       content: newMessage.trim(),
     });
   };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setNewMessage(value);
+    
+    if (!selectedUserId) return;
+    
+    // Send typing indicator
+    if (value.trim() && !isTyping) {
+      setIsTyping(true);
+      sendTypingIndicator(selectedUserId, true);
+    }
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Stop typing indicator after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTyping) {
+        setIsTyping(false);
+        sendTypingIndicator(selectedUserId, false);
+      }
+    }, 2000);
+  };
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -128,6 +184,33 @@ export function MessagesPage() {
     } else {
       return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
     }
+  };
+
+  const formatLastSeen = (lastSeen: Date | null) => {
+    if (!lastSeen) return "很久之前";
+    
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - lastSeen.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return "刚刚";
+    if (diffInMinutes < 60) return `${diffInMinutes}分钟前`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}小时前`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}天前`;
+    
+    return lastSeen.toLocaleDateString("zh-CN");
+  };
+
+  const getOnlineStatus = (userId: number) => {
+    const online = isUserOnline(userId);
+    const lastSeen = getUserLastSeen(userId);
+    
+    if (online) return { status: "在线", color: "text-green-500" };
+    if (lastSeen) return { status: formatLastSeen(lastSeen), color: "text-gray-500" };
+    return { status: "离线", color: "text-gray-400" };
   };
 
   const selectedConversation = conversations.find(c => c.userId === selectedUserId);
@@ -150,10 +233,23 @@ export function MessagesPage() {
         {/* 对话列表 */}
         <div className="w-1/3 border-r border-gray-200 flex flex-col">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold flex items-center">
-              <MessageCircle className="w-5 h-5 mr-2" />
-              消息
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold flex items-center">
+                <MessageCircle className="w-5 h-5 mr-2" />
+                消息
+              </h2>
+              <div className="flex items-center space-x-1">
+                {isConnected ? (
+                  <div title="实时连接已建立">
+                    <Wifi className="w-4 h-4 text-green-500" />
+                  </div>
+                ) : (
+                  <div title="连接断开，使用离线模式">
+                    <WifiOff className="w-4 h-4 text-red-500" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           
           <ScrollArea className="flex-1">
@@ -193,6 +289,11 @@ export function MessagesPage() {
                             {conversation.user.fullName?.charAt(0) || conversation.user.username.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
+                        {isUserOnline(conversation.userId) && (
+                          <div className="absolute -bottom-0.5 -right-0.5">
+                            <Circle className="w-3 h-3 text-green-500 fill-current border-2 border-white rounded-full" />
+                          </div>
+                        )}
                         {conversation.unreadCount > 0 && (
                           <Badge className="absolute -top-1 -right-1 w-5 h-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500">
                             {conversation.unreadCount}
@@ -238,7 +339,18 @@ export function MessagesPage() {
                     <p className="font-medium">
                       {selectedConversation?.user.fullName || selectedConversation?.user.username}
                     </p>
-                    <p className="text-sm text-gray-500">在线</p>
+                    <div className="flex items-center space-x-1">
+                      {(() => {
+                        const { status, color } = getOnlineStatus(selectedUserId!);
+                        const online = isUserOnline(selectedUserId!);
+                        return (
+                          <>
+                            <Circle className={`w-2 h-2 fill-current ${online ? 'text-green-500' : 'text-gray-400'}`} />
+                            <p className={`text-sm ${color}`}>{status}</p>
+                          </>
+                        );
+                      })()} 
+                    </div>
                   </div>
                 </div>
               </div>
@@ -310,16 +422,18 @@ export function MessagesPage() {
               {/* 消息输入区 */}
               <div className="p-4 border-t border-gray-200">
                 <form onSubmit={handleSendMessage} className="flex space-x-2">
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="输入消息..."
-                    className="flex-1"
-                    disabled={sendMessageMutation.isPending}
-                  />
+                  <div className="flex-1">
+                    <Input
+                      value={newMessage}
+                      onChange={handleInputChange}
+                      placeholder={isConnected ? "输入消息..." : "连接中..."}
+                      className="w-full"
+                      disabled={sendMessageMutation.isPending || !isConnected}
+                    />
+                  </div>
                   <Button
                     type="submit"
-                    disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                    disabled={!newMessage.trim() || sendMessageMutation.isPending || !isConnected}
                     size="sm"
                   >
                     {sendMessageMutation.isPending ? (

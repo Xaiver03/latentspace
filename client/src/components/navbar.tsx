@@ -24,6 +24,8 @@ export default function Navbar() {
     { href: "/platform/events", label: "活动中心" },
     { href: "/platform/community", label: "内容社区" },
     { href: "/platform/matching", label: "创始人匹配" },
+    { href: "/platform/discovery", label: "内容发现" },
+    { href: "/platform/analytics", label: "分析洞察" },
     { href: "/platform/messages", label: "消息" },
   ];
 

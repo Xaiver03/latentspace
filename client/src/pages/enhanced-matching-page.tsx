@@ -24,7 +24,7 @@ import {
   XCircle,
   AlertCircle,
   Heart,
-  MessageCircle2,
+  MessageCircle,
   TrendingUp
 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -115,10 +115,17 @@ export default function EnhancedMatchingPage() {
     enabled: !!user,
   });
 
-  // Get match recommendations
-  const { data: recommendations = [], isLoading: recommendationsLoading, refetch: refetchRecommendations } = useQuery<MatchResult[]>({
-    queryKey: ["/api/matches/recommendations"],
-    queryFn: () => apiRequest("GET", "/api/matches/recommendations?limit=20"),
+  // Get enhanced match recommendations
+  const { data: recommendations = [], isLoading: recommendationsLoading, refetch: refetchRecommendations } = useQuery<any[]>({
+    queryKey: ["/api/matches/enhanced"],
+    queryFn: () => apiRequest("GET", "/api/matches/enhanced?limit=20"),
+    enabled: !!user && myApplication?.status === 'approved',
+  });
+
+  // Get daily recommendation
+  const { data: dailyRecommendationData } = useQuery<{ recommendation: any }>({
+    queryKey: ["/api/matches/daily-recommendation"],
+    queryFn: () => apiRequest("GET", "/api/matches/daily-recommendation"),
     enabled: !!user && myApplication?.status === 'approved',
   });
 
@@ -528,7 +535,7 @@ export default function EnhancedMatchingPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                          <MessageCircle2 className="w-5 h-5 text-purple-600" />
+                          <MessageCircle className="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
                           <p className="text-2xl font-bold">{existingMatches.length}</p>

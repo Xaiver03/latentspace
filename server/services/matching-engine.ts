@@ -215,8 +215,8 @@ export class MatchingEngine {
     if (user1.bio && user2.bio) {
       const bioKeywords1 = user1.bio.toLowerCase().split(/\s+/);
       const bioKeywords2 = user2.bio.toLowerCase().split(/\s+/);
-      const commonKeywords = bioKeywords1.filter(word => 
-        bioKeywords2.some(w2 => w2.includes(word) || word.includes(w2))
+      const commonKeywords = bioKeywords1.filter((word: string) => 
+        bioKeywords2.some((w2: string) => w2.includes(word) || word.includes(w2))
       );
       
       if (commonKeywords.length > 2) {
@@ -277,11 +277,11 @@ export class MatchingEngine {
       const { score, reasons } = this.calculateMatchScore(
         {
           ...userApplication.users,
-          application: userApplication.cofounderApplications
+          application: userApplication.cofounder_applications
         },
         {
           ...match.users,
-          application: match.cofounderApplications
+          application: match.cofounder_applications
         }
       );
 
@@ -291,17 +291,17 @@ export class MatchingEngine {
             id: match.users.id,
             fullName: match.users.fullName,
             username: match.users.username,
-            avatarUrl: match.users.avatarUrl,
-            researchField: match.users.researchField,
-            affiliation: match.users.affiliation,
-            bio: match.users.bio,
+            avatarUrl: match.users.avatarUrl || undefined,
+            researchField: match.users.researchField || undefined,
+            affiliation: match.users.affiliation || undefined,
+            bio: match.users.bio || undefined,
             application: {
-              id: match.cofounderApplications.id,
-              researchField: match.cofounderApplications.researchField,
-              startupDirection: match.cofounderApplications.startupDirection,
-              experience: match.cofounderApplications.experience,
-              lookingFor: match.cofounderApplications.lookingFor,
-              status: match.cofounderApplications.status,
+              id: match.cofounder_applications.id,
+              researchField: match.cofounder_applications.researchField,
+              startupDirection: match.cofounder_applications.startupDirection,
+              experience: match.cofounder_applications.experience || undefined,
+              lookingFor: match.cofounder_applications.lookingFor || undefined,
+              status: match.cofounder_applications.status,
             },
             matchScore: score,
             matchReasons: reasons,
@@ -340,8 +340,8 @@ export class MatchingEngine {
     }
 
     const { score } = this.calculateMatchScore(
-      { ...user1Data.users, application: user1Data.cofounderApplications },
-      { ...user2Data.users, application: user2Data.cofounderApplications }
+      { ...user1Data.users, application: user1Data.cofounder_applications },
+      { ...user2Data.users, application: user2Data.cofounder_applications }
     );
 
     // Store the match
