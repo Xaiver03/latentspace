@@ -24,6 +24,7 @@ export default function Navbar() {
     { href: "/platform/events", label: "活动中心" },
     { href: "/platform/community", label: "内容社区" },
     { href: "/platform/matching", label: "创始人匹配" },
+    { href: "/platform/messages", label: "消息" },
   ];
 
   return (
@@ -92,9 +93,11 @@ export default function Navbar() {
                         </p>
                       </div>
                     </div>
-                    <DropdownMenuItem className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>个人资料</span>
+                    <DropdownMenuItem className="cursor-pointer" asChild>
+                      <Link href="/platform/profile" className="flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>个人资料</span>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />

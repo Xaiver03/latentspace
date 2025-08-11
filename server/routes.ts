@@ -6,6 +6,7 @@ import { insertEventSchema, insertAgentProductSchema, insertCofounderApplication
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
+import { matchingEngine } from "./services/matching-engine";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -73,7 +74,21 @@ export function registerRoutes(app: Express): Server {
       const eventId = parseInt(req.params.id);
       const registration = await storage.registerForEvent(eventId, req.user!.id);
       res.status(201).json(registration);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to register for event";
+      
+      // Handle specific error types
+      if (errorMessage.includes("Event not found")) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      if (errorMessage.includes("Event is full")) {
+        return res.status(409).json({ error: "Event is full" });
+      }
+      if (errorMessage.includes("Already registered")) {
+        return res.status(409).json({ error: "Already registered for this event" });
+      }
+      
+      console.error("Event registration error:", error);
       res.status(500).json({ error: "Failed to register for event" });
     }
   });
@@ -91,7 +106,14 @@ export function registerRoutes(app: Express): Server {
       } else {
         res.status(404).json({ error: "Registration not found" });
       }
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to unregister from event";
+      
+      if (errorMessage.includes("Event not found")) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      
+      console.error("Event unregistration error:", error);
       res.status(500).json({ error: "Failed to unregister from event" });
     }
   });
@@ -225,7 +247,116 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get match recommendations
+  app.get("/api/matches/recommendations", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const recommendations = await matchingEngine.generateRecommendations(req.user!.id, limit);
+      res.json(recommendations);
+    } catch (error: any) {
+      console.error("Match recommendations error:", error);
+      if (error.message?.includes("not found or not approved")) {
+        return res.status(404).json({ 
+          error: "请先完成Co-founder申请并等待审核通过" 
+        });
+      }
+      res.status(500).json({ error: "Failed to generate recommendations" });
+    }
+  });
+
+  // Express interest in a potential match
+  app.post("/api/matches/:userId/interest", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    try {
+      const targetUserId = parseInt(req.params.userId);
+      if (targetUserId === req.user!.id) {
+        return res.status(400).json({ error: "Cannot match with yourself" });
+      }
+
+      // Create match record
+      await matchingEngine.createMatch(req.user!.id, targetUserId);
+      
+      res.json({ message: "Interest expressed successfully" });
+    } catch (error: any) {
+      console.error("Express interest error:", error);
+      if (error.message?.includes("duplicate")) {
+        return res.status(409).json({ error: "已经表达过兴趣" });
+      }
+      res.status(500).json({ error: "Failed to express interest" });
+    }
+  });
+
+  // Get breaking ice questions
+  app.get("/api/matches/ice-breakers", async (req, res) => {
+    try {
+      const questions = matchingEngine.getBreakingIceQuestions();
+      res.json({ questions });
+    } catch (error) {
+      console.error("Ice breakers error:", error);
+      res.status(500).json({ error: "Failed to get ice breaker questions" });
+    }
+  });
+
+  // Start conversation with breaking ice questions
+  app.post("/api/matches/:userId/start-conversation", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    try {
+      const targetUserId = parseInt(req.params.userId);
+      const { answers } = req.body;
+
+      if (!answers || !Array.isArray(answers) || answers.length === 0) {
+        return res.status(400).json({ error: "Answers are required" });
+      }
+
+      // Get ice breaker questions
+      const questions = matchingEngine.getBreakingIceQuestions();
+      
+      // Format initial message with questions and answers
+      const formattedMessage = `🤝 **破冰问答**\n\n${
+        questions.map((question, index) => 
+          `**${question}**\n${answers[index] || '未回答'}\n`
+        ).join('\n')
+      }\n期待与你进一步交流！`;
+
+      // Send the formatted message
+      const message = await storage.createMessage({
+        senderId: req.user!.id,
+        receiverId: targetUserId,
+        content: formattedMessage
+      });
+
+      res.json({ message: "Conversation started successfully", messageId: message.id });
+    } catch (error) {
+      console.error("Start conversation error:", error);
+      res.status(500).json({ error: "Failed to start conversation" });
+    }
+  });
+
   // Messages routes
+  app.get("/api/messages/conversations", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    try {
+      const conversations = await storage.getUserConversations(req.user!.id);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Get conversations error:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
   app.get("/api/messages", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Authentication required" });
@@ -284,6 +415,79 @@ export function registerRoutes(app: Express): Server {
       res.json({ message: "Admin users endpoint - to be implemented" });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  // User profile routes
+  app.get("/api/users/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Remove sensitive data
+      const { password, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Get profile error:", error);
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  app.put("/api/users/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    try {
+      const { fullName, researchField, affiliation, bio, avatarUrl } = req.body;
+      
+      // Validate input
+      if (!fullName?.trim()) {
+        return res.status(400).json({ error: "Full name is required" });
+      }
+
+      const updatedUser = await storage.updateUserProfile(req.user!.id, {
+        fullName: fullName.trim(),
+        researchField: researchField?.trim() || null,
+        affiliation: affiliation?.trim() || null,
+        bio: bio?.trim() || null,
+        avatarUrl: avatarUrl?.trim() || null,
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Remove sensitive data
+      const { password, ...userProfile } = updatedUser;
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  app.post("/api/users/avatar", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    try {
+      // For now, return a placeholder response
+      // In a real implementation, you would handle file upload to a service like Cloudinary
+      res.json({ 
+        avatarUrl: "https://via.placeholder.com/150",
+        message: "Avatar upload feature to be implemented with cloud storage service" 
+      });
+    } catch (error) {
+      console.error("Avatar upload error:", error);
+      res.status(500).json({ error: "Failed to upload avatar" });
     }
   });
 

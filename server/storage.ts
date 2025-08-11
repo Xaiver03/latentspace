@@ -12,10 +12,18 @@ export interface IStorage {
   
   // User methods
   getUser(id: number): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  updateUserProfile(id: number, profile: {
+    fullName: string;
+    researchField?: string | null;
+    affiliation?: string | null;
+    bio?: string | null;
+    avatarUrl?: string | null;
+  }): Promise<User | undefined>;
   
   // Event methods
   getEvents(): Promise<Event[]>;
@@ -51,6 +59,7 @@ export interface IStorage {
   
   // Message methods
   getUserMessages(userId: number): Promise<Message[]>;
+  getUserConversations(userId: number): Promise<any[]>;
   getConversation(user1Id: number, user2Id: number): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<boolean>;
@@ -98,6 +107,32 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserById(id: number): Promise<User | undefined> {
+    // This is an alias for getUser for consistency with API naming
+    return this.getUser(id);
+  }
+
+  async updateUserProfile(id: number, profile: {
+    fullName: string;
+    researchField?: string | null;
+    affiliation?: string | null;
+    bio?: string | null;
+    avatarUrl?: string | null;
+  }): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({
+        fullName: profile.fullName,
+        researchField: profile.researchField,
+        affiliation: profile.affiliation,
+        bio: profile.bio,
+        avatarUrl: profile.avatarUrl,
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
   async getEvents(): Promise<Event[]> {
     return await db.select().from(events).orderBy(desc(events.date));
   }
@@ -130,34 +165,101 @@ export class DatabaseStorage implements IStorage {
   }
 
   async registerForEvent(eventId: number, userId: number): Promise<EventRegistration> {
-    const [registration] = await db
-      .insert(eventRegistrations)
-      .values({ eventId, userId })
-      .returning();
-    
-    // Update event attendee count
-    await db
-      .update(events)
-      .set({ currentAttendees: sql`${events.currentAttendees} + 1` })
-      .where(eq(events.id, eventId));
-    
-    return registration;
+    return await db.transaction(async (tx) => {
+      // 1. Check if event exists and get current attendee count with row lock
+      const [event] = await tx
+        .select()
+        .from(events)
+        .where(eq(events.id, eventId))
+        .for('update'); // Row lock to prevent concurrent modifications
+      
+      if (!event) {
+        throw new Error('Event not found');
+      }
+      
+      // 2. Check if event is full
+      if (event.currentAttendees >= event.maxAttendees) {
+        throw new Error('Event is full');
+      }
+      
+      // 3. Check for duplicate registration
+      const existingRegistration = await tx
+        .select()
+        .from(eventRegistrations)
+        .where(and(
+          eq(eventRegistrations.eventId, eventId),
+          eq(eventRegistrations.userId, userId)
+        ));
+      
+      if (existingRegistration.length > 0) {
+        throw new Error('Already registered for this event');
+      }
+      
+      // 4. Atomic operation: insert registration and update count
+      const [registration] = await tx
+        .insert(eventRegistrations)
+        .values({ eventId, userId })
+        .returning();
+      
+      await tx
+        .update(events)
+        .set({ 
+          currentAttendees: event.currentAttendees + 1,
+          updatedAt: new Date()
+        })
+        .where(eq(events.id, eventId));
+      
+      return registration;
+    });
   }
 
   async unregisterFromEvent(eventId: number, userId: number): Promise<boolean> {
-    const result = await db
-      .delete(eventRegistrations)
-      .where(and(eq(eventRegistrations.eventId, eventId), eq(eventRegistrations.userId, userId)));
-    
-    if (result.rowCount > 0) {
-      // Update event attendee count
-      await db
-        .update(events)
-        .set({ currentAttendees: sql`${events.currentAttendees} - 1` })
-        .where(eq(events.id, eventId));
-      return true;
-    }
-    return false;
+    return await db.transaction(async (tx) => {
+      // 1. Check if registration exists
+      const existingRegistration = await tx
+        .select()
+        .from(eventRegistrations)
+        .where(and(
+          eq(eventRegistrations.eventId, eventId),
+          eq(eventRegistrations.userId, userId)
+        ));
+      
+      if (existingRegistration.length === 0) {
+        return false; // Not registered
+      }
+      
+      // 2. Get event details with row lock
+      const [event] = await tx
+        .select()
+        .from(events)
+        .where(eq(events.id, eventId))
+        .for('update');
+      
+      if (!event) {
+        throw new Error('Event not found');
+      }
+      
+      // 3. Atomic operation: delete registration and update count
+      const result = await tx
+        .delete(eventRegistrations)
+        .where(and(
+          eq(eventRegistrations.eventId, eventId),
+          eq(eventRegistrations.userId, userId)
+        ));
+      
+      if (result.rowCount > 0) {
+        await tx
+          .update(events)
+          .set({ 
+            currentAttendees: Math.max(0, event.currentAttendees - 1),
+            updatedAt: new Date()
+          })
+          .where(eq(events.id, eventId));
+        return true;
+      }
+      
+      return false;
+    });
   }
 
   async getUserEventRegistrations(userId: number): Promise<EventRegistration[]> {
@@ -257,6 +359,69 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(messages)
       .where(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)))
       .orderBy(desc(messages.createdAt));
+  }
+
+  async getUserConversations(userId: number): Promise<any[]> {
+    // Get all unique conversation partners
+    const conversations = await db
+      .select({
+        otherUserId: sql<number>`CASE 
+          WHEN ${messages.senderId} = ${userId} THEN ${messages.receiverId}
+          ELSE ${messages.senderId}
+        END`.as('otherUserId'),
+        lastMessageId: sql<number>`MAX(${messages.id})`.as('lastMessageId'),
+        lastMessageTime: sql<string>`MAX(${messages.createdAt})`.as('lastMessageTime')
+      })
+      .from(messages)
+      .where(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)))
+      .groupBy(sql`CASE 
+        WHEN ${messages.senderId} = ${userId} THEN ${messages.receiverId}
+        ELSE ${messages.senderId}
+      END`)
+      .orderBy(desc(sql`MAX(${messages.createdAt})`));
+
+    // Get details for each conversation
+    const conversationsWithDetails = await Promise.all(
+      conversations.map(async (conv) => {
+        // Get other user details
+        const [otherUser] = await db
+          .select({
+            id: users.id,
+            fullName: users.fullName,
+            username: users.username,
+            avatarUrl: users.avatarUrl,
+          })
+          .from(users)
+          .where(eq(users.id, conv.otherUserId));
+
+        // Get last message details
+        const [lastMessage] = await db
+          .select()
+          .from(messages)
+          .where(eq(messages.id, conv.lastMessageId));
+
+        // Count unread messages
+        const [unreadResult] = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(messages)
+          .where(
+            and(
+              eq(messages.receiverId, userId),
+              eq(messages.senderId, conv.otherUserId),
+              eq(messages.isRead, false)
+            )
+          );
+
+        return {
+          userId: conv.otherUserId,
+          user: otherUser,
+          lastMessage: lastMessage,
+          unreadCount: unreadResult?.count || 0,
+        };
+      })
+    );
+
+    return conversationsWithDetails.filter(conv => conv.user && conv.lastMessage);
   }
 
   async getConversation(user1Id: number, user2Id: number): Promise<Message[]> {

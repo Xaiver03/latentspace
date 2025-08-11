@@ -53,10 +53,24 @@ export default function EventsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events/registrations"] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "报名时发生错误，请重试";
+      
+      if (error?.status === 409) {
+        if (error.error?.includes("Event is full")) {
+          errorMessage = "活动已满员，无法报名";
+        } else if (error.error?.includes("Already registered")) {
+          errorMessage = "您已经报名了此活动";
+        }
+      } else if (error?.status === 404) {
+        errorMessage = "活动不存在";
+      } else if (error?.status === 401) {
+        errorMessage = "请先登录";
+      }
+      
       toast({
         title: "报名失败",
-        description: "报名时发生错误，请重试",
+        description: errorMessage,
         variant: "destructive",
       });
     },

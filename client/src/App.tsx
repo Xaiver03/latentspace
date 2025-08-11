@@ -9,8 +9,10 @@ import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import EventsPage from "@/pages/events-page";
 import CommunityPage from "@/pages/community-page";
-import MatchingPage from "@/pages/matching-page";
+import EnhancedMatchingPage from "@/pages/enhanced-matching-page";
 import AdminPage from "@/pages/admin-page";
+import { ProfilePage } from "@/pages/profile-page";
+import { MessagesPage } from "@/pages/messages-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,7 +23,9 @@ function Router() {
       <Route path="/platform/auth" component={AuthPage} />
       <ProtectedRoute path="/platform/events" component={EventsPage} />
       <ProtectedRoute path="/platform/community" component={CommunityPage} />
-      <ProtectedRoute path="/platform/matching" component={MatchingPage} />
+      <ProtectedRoute path="/platform/matching" component={EnhancedMatchingPage} />
+      <ProtectedRoute path="/platform/profile" component={ProfilePage} />
+      <ProtectedRoute path="/platform/messages" component={MessagesPage} />
       <ProtectedRoute path="/platform/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>

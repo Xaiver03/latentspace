@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   researchField: text("research_field"),
   affiliation: text("affiliation"),
   bio: text("bio"),
+  avatarUrl: text("avatar_url"),
   role: text("role").notNull().default("user"), // user, admin
   isApproved: boolean("is_approved").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -29,14 +30,24 @@ export const events = pgTable("events", {
   imageUrl: text("image_url"),
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  categoryIdx: index("events_category_idx").on(table.category),
+  dateIdx: index("events_date_idx").on(table.date),
+  createdByIdx: index("events_created_by_idx").on(table.createdBy),
+  categoryDateIdx: index("events_category_date_idx").on(table.category, table.date),
+}));
 
 export const eventRegistrations = pgTable("event_registrations", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").references(() => events.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   registeredAt: timestamp("registered_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userEventIdx: uniqueIndex("event_reg_user_event_idx").on(table.userId, table.eventId),
+  eventIdx: index("event_reg_event_idx").on(table.eventId),
+  userIdx: index("event_reg_user_idx").on(table.userId),
+}));
 
 export const agentProducts = pgTable("agent_products", {
   id: serial("id").primaryKey(),
@@ -72,7 +83,13 @@ export const matches = pgTable("matches", {
   matchScore: integer("match_score"),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  user1Idx: index("matches_user1_idx").on(table.user1Id),
+  user2Idx: index("matches_user2_idx").on(table.user2Id),
+  scoreIdx: index("matches_score_idx").on(table.matchScore),
+  statusIdx: index("matches_status_idx").on(table.status),
+  user1User2Idx: uniqueIndex("matches_user1_user2_idx").on(table.user1Id, table.user2Id),
+}));
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -81,7 +98,12 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  senderIdx: index("messages_sender_idx").on(table.senderId),
+  receiverIdx: index("messages_receiver_idx").on(table.receiverId),
+  conversationIdx: index("messages_conversation_idx").on(table.senderId, table.receiverId),
+  createdAtIdx: index("messages_created_at_idx").on(table.createdAt),
+}));
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
