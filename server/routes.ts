@@ -15,6 +15,11 @@ import { adminService } from "./services/admin-service";
 import { initializeWebSocketService, getWebSocketService } from "./services/websocket-service";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import aiMatchingRoutes from "./routes/ai-matching-routes";
+import intelligentSearchRoutes from "./routes/intelligent-search-routes";
+import collaborationRoutes from "./routes/collaboration-routes";
+import aiMarketplaceRoutes from "./routes/ai-marketplace-routes";
+import reputationRoutes from "./routes/reputation-routes";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -846,6 +851,21 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ error: "Failed to send message" });
     }
   });
+
+  // AI Matching routes
+  app.use("/api/matching", aiMatchingRoutes);
+
+  // Intelligent Search routes
+  app.use("/api/search", intelligentSearchRoutes);
+
+  // Collaboration routes
+  app.use("/api/collaboration", collaborationRoutes);
+
+  // AI Marketplace routes
+  app.use("/api/marketplace", aiMarketplaceRoutes);
+
+  // Reputation routes
+  app.use("/api/reputation", reputationRoutes);
 
   // Admin routes
   app.get("/api/admin/users", async (req, res) => {

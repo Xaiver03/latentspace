@@ -18,6 +18,11 @@ import { ProfilePage } from "@/pages/profile-page";
 import { MessagesPage } from "@/pages/messages-page";
 import MatchingAnalyticsPage from "@/pages/matching-analytics-page";
 import ContentDiscoveryPage from "@/pages/content-discovery-page";
+import { AiMatchingPage } from "@/pages/ai-matching-page";
+import { IntelligentSearchPage } from "@/pages/intelligent-search-page";
+import { CollaborationWorkspacePage } from "@/pages/collaboration-workspace-page";
+import { AiMarketplacePage } from "@/pages/ai-marketplace-page";
+import { ReputationDashboardPage } from "@/pages/reputation-dashboard-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +35,11 @@ function Router() {
       <ProtectedRoute path="/platform/events/:id" component={EventDetailPage} />
       <ProtectedRoute path="/platform/community" component={CommunityPage} />
       <ProtectedRoute path="/platform/matching" component={EnhancedMatchingPage} />
+      <ProtectedRoute path="/platform/ai-matching" component={AiMatchingPage} />
+      <ProtectedRoute path="/platform/search" component={IntelligentSearchPage} />
+      <ProtectedRoute path="/platform/workspace" component={CollaborationWorkspacePage} />
+      <ProtectedRoute path="/platform/marketplace" component={AiMarketplacePage} />
+      <ProtectedRoute path="/platform/reputation" component={ReputationDashboardPage} />
       <ProtectedRoute path="/platform/profile" component={ProfilePage} />
       <ProtectedRoute path="/platform/messages" component={MessagesPage} />
       <ProtectedRoute path="/platform/analytics" component={MatchingAnalyticsPage} />

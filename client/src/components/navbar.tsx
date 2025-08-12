@@ -22,8 +22,13 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/platform/events", label: "活动中心" },
+    { href: "/platform/search", label: "智能搜索" },
     { href: "/platform/community", label: "内容社区" },
     { href: "/platform/matching", label: "创始人匹配" },
+    { href: "/platform/ai-matching", label: "AI 智能匹配" },
+    { href: "/platform/workspace", label: "协作空间" },
+    { href: "/platform/marketplace", label: "AI 工具市场" },
+    { href: "/platform/reputation", label: "信誉系统" },
     { href: "/platform/discovery", label: "内容发现" },
     { href: "/platform/analytics", label: "分析洞察" },
     { href: "/platform/messages", label: "消息" },
