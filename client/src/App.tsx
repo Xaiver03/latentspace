@@ -13,6 +13,7 @@ import { EventDetailPage } from "@/pages/event-detail-page";
 import CommunityPage from "@/pages/community-page";
 import EnhancedMatchingPage from "@/pages/enhanced-matching-page";
 import AdminPage from "@/pages/admin-page";
+import AdvancedAdminPage from "@/pages/advanced-admin-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { MessagesPage } from "@/pages/messages-page";
 import MatchingAnalyticsPage from "@/pages/matching-analytics-page";
@@ -33,7 +34,7 @@ function Router() {
       <ProtectedRoute path="/platform/messages" component={MessagesPage} />
       <ProtectedRoute path="/platform/analytics" component={MatchingAnalyticsPage} />
       <ProtectedRoute path="/platform/discovery" component={ContentDiscoveryPage} />
-      <ProtectedRoute path="/platform/admin" component={AdminPage} />
+      <ProtectedRoute path="/platform/admin" component={AdvancedAdminPage} />
       <Route component={NotFound} />
     </Switch>
   );

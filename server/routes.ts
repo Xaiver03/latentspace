@@ -11,6 +11,7 @@ import { enhancedMatchingEngine } from "./services/enhanced-matching-engine";
 import { matchingAnalytics } from "./services/matching-analytics";
 import { contentRecommendation } from "./services/content-recommendation";
 import { notificationService } from "./services/notification-service";
+import { adminService } from "./services/admin-service";
 import { initializeWebSocketService, getWebSocketService } from "./services/websocket-service";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -1157,6 +1158,192 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Schedule event reminders error:", error);
       res.status(500).json({ error: "Failed to schedule event reminders" });
+    }
+  });
+
+  // Admin Management System routes
+  app.get("/api/admin/stats", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const timeRange = req.query.timeRange as 'week' | 'month' | 'quarter' || 'month';
+      const stats = await adminService.getPlatformStats(timeRange);
+      res.json(stats);
+    } catch (error) {
+      console.error("Get admin stats error:", error);
+      res.status(500).json({ error: "Failed to fetch platform statistics" });
+    }
+  });
+
+  app.get("/api/admin/users", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const filter = {
+        role: req.query.role as string,
+        status: req.query.status as string,
+        search: req.query.search as string,
+      };
+
+      const result = await adminService.getUsers(page, limit, filter);
+      res.json(result);
+    } catch (error) {
+      console.error("Get admin users error:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/admin/users/:userId", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const userId = parseInt(req.params.userId);
+      const userDetails = await adminService.getUserDetails(userId);
+      
+      if (!userDetails) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json(userDetails);
+    } catch (error) {
+      console.error("Get user details error:", error);
+      res.status(500).json({ error: "Failed to fetch user details" });
+    }
+  });
+
+  app.get("/api/admin/content/moderation", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const type = req.query.type as 'event' | 'product' | 'application';
+      const content = await adminService.getContentForModeration(type);
+      res.json(content);
+    } catch (error) {
+      console.error("Get content for moderation error:", error);
+      res.status(500).json({ error: "Failed to fetch content for moderation" });
+    }
+  });
+
+  app.post("/api/admin/moderate/application/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { action, notes } = req.body;
+
+      if (!['approve', 'reject'].includes(action)) {
+        return res.status(400).json({ error: "Invalid action. Must be 'approve' or 'reject'" });
+      }
+
+      await adminService.moderateApplication(applicationId, action, req.user!.id, notes);
+      res.json({ success: true, message: `Application ${action}d successfully` });
+    } catch (error) {
+      console.error("Moderate application error:", error);
+      res.status(500).json({ error: "Failed to moderate application" });
+    }
+  });
+
+  app.post("/api/admin/moderate/user/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const userId = parseInt(req.params.id);
+      const { action, reason } = req.body;
+
+      if (!['suspend', 'unsuspend', 'warn'].includes(action)) {
+        return res.status(400).json({ error: "Invalid action. Must be 'suspend', 'unsuspend', or 'warn'" });
+      }
+
+      if (!reason) {
+        return res.status(400).json({ error: "Reason is required for user moderation" });
+      }
+
+      await adminService.moderateUser(userId, action, req.user!.id, reason);
+      res.json({ success: true, message: `User ${action} action completed successfully` });
+    } catch (error) {
+      console.error("Moderate user error:", error);
+      res.status(500).json({ error: "Failed to moderate user" });
+    }
+  });
+
+  app.get("/api/admin/alerts", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const alerts = await adminService.getSystemAlerts();
+      res.json(alerts);
+    } catch (error) {
+      console.error("Get system alerts error:", error);
+      res.status(500).json({ error: "Failed to fetch system alerts" });
+    }
+  });
+
+  app.post("/api/admin/announcement", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const { title, message, priority = 'medium', targetRole } = req.body;
+      
+      if (!title || !message) {
+        return res.status(400).json({ error: "Title and message are required" });
+      }
+
+      await adminService.sendSystemAnnouncement(title, message, priority, targetRole, req.user!.id);
+      res.json({ success: true, message: "System announcement sent successfully" });
+    } catch (error) {
+      console.error("Send admin announcement error:", error);
+      res.status(500).json({ error: "Failed to send system announcement" });
+    }
+  });
+
+  app.get("/api/admin/moderation-log", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const log = await adminService.getModerationLog(limit);
+      res.json(log);
+    } catch (error) {
+      console.error("Get moderation log error:", error);
+      res.status(500).json({ error: "Failed to fetch moderation log" });
+    }
+  });
+
+  app.get("/api/admin/export/:type", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    try {
+      const type = req.params.type as 'users' | 'events' | 'applications' | 'analytics';
+      const data = await adminService.exportPlatformData(type);
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=${type}-export-${new Date().toISOString().split('T')[0]}.json`);
+      res.json(data);
+    } catch (error) {
+      console.error("Export data error:", error);
+      res.status(500).json({ error: "Failed to export data" });
     }
   });
 
