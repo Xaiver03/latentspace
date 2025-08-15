@@ -6,6 +6,10 @@ import { insertEventSchema, insertAgentProductSchema, insertCofounderApplication
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
+import { eventsService } from "./services/events-service";
+import { validate, requireAuth, commonSchemas } from "./middleware/validation";
+import { AppError, asyncHandler } from "./middleware/error-handler";
+import { createResourceRateLimit, authRateLimit } from "./middleware/rate-limit";
 import { matchingEngine } from "./services/matching-engine";
 import { enhancedMatchingEngine } from "./services/enhanced-matching-engine";
 import { matchingAnalytics } from "./services/matching-analytics";
@@ -36,127 +40,82 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Events routes
-  app.get("/api/events", async (req, res) => {
-    try {
-      const events = await storage.getEvents();
-      res.json(events);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch events" });
-    }
-  });
+  // Events routes with improved error handling and pagination
+  app.get("/api/events", 
+    validate({ query: commonSchemas.pagination.merge(commonSchemas.search) }),
+    asyncHandler(async (req, res) => {
+      const { page, limit, sort, order, q: search, category } = req.query as any;
+      
+      const filters = { search, category };
+      const pagination = { page, limit, sort, order };
+      
+      const result = await eventsService.getEvents(filters, pagination);
+      res.json(result);
+    })
+  );
 
-  app.get("/api/events/:id", async (req, res) => {
-    try {
-      const event = await storage.getEvent(parseInt(req.params.id));
-      if (!event) {
-        return res.status(404).json({ error: "Event not found" });
-      }
+  app.get("/api/events/:id",
+    validate({ params: commonSchemas.id }),
+    asyncHandler(async (req, res) => {
+      const { id } = req.params as any;
+      const event = await eventsService.getEvent(id);
       res.json(event);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch event" });
-    }
-  });
+    })
+  );
 
-  app.post("/api/events", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const eventData = insertEventSchema.parse({
-        ...req.body,
-        createdBy: req.user!.id,
-      });
-      const event = await storage.createEvent(eventData);
+  app.post("/api/events",
+    createResourceRateLimit,
+    requireAuth,
+    validate({ body: insertEventSchema.omit({ createdBy: true }) }),
+    asyncHandler(async (req, res) => {
+      const eventData = req.body as any;
+      const event = await eventsService.createEvent(eventData, req.user!.id);
       res.status(201).json(event);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid event data", details: error.errors });
-      }
-      res.status(500).json({ error: "Failed to create event" });
-    }
-  });
+    })
+  );
 
-  app.post("/api/events/:id/register", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const eventId = parseInt(req.params.id);
-      const registration = await storage.registerForEvent(eventId, req.user!.id);
+  app.post("/api/events/:id/register",
+    requireAuth,
+    validate({ params: commonSchemas.id }),
+    asyncHandler(async (req, res) => {
+      const { id } = req.params as any;
+      const registration = await eventsService.registerForEvent(id, req.user!.id);
       res.status(201).json(registration);
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to register for event";
-      
-      // Handle specific error types
-      if (errorMessage.includes("Event not found")) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      if (errorMessage.includes("Event is full")) {
-        return res.status(409).json({ error: "Event is full" });
-      }
-      if (errorMessage.includes("Already registered")) {
-        return res.status(409).json({ error: "Already registered for this event" });
-      }
-      
-      console.error("Event registration error:", error);
-      res.status(500).json({ error: "Failed to register for event" });
-    }
-  });
+    })
+  );
 
-  app.delete("/api/events/:id/register", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const eventId = parseInt(req.params.id);
-      const success = await storage.unregisterFromEvent(eventId, req.user!.id);
-      if (success) {
-        res.json({ message: "Unregistered successfully" });
-      } else {
-        res.status(404).json({ error: "Registration not found" });
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to unregister from event";
-      
-      if (errorMessage.includes("Event not found")) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      
-      console.error("Event unregistration error:", error);
-      res.status(500).json({ error: "Failed to unregister from event" });
-    }
-  });
+  app.delete("/api/events/:id/register",
+    requireAuth,
+    validate({ params: commonSchemas.id }),
+    asyncHandler(async (req, res) => {
+      const { id } = req.params as any;
+      await eventsService.unregisterFromEvent(id, req.user!.id);
+      res.json({ message: "Unregistered successfully" });
+    })
+  );
 
   // Event content management routes
-  app.get("/api/events/:id/contents", async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.id);
-      const contents = await storage.getEventContents(eventId);
+  app.get("/api/events/:id/contents",
+    validate({ params: commonSchemas.id }),
+    asyncHandler(async (req, res) => {
+      const { id } = req.params as any;
+      const contents = await eventsService.getEventContents(id);
       res.json(contents);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch event contents" });
-    }
-  });
+    })
+  );
 
-  app.get("/api/event-contents/:id", async (req, res) => {
-    try {
-      const content = await storage.getEventContent(parseInt(req.params.id));
-      if (!content) {
-        return res.status(404).json({ error: "Content not found" });
-      }
+  app.get("/api/event-contents/:id",
+    validate({ params: commonSchemas.id }),
+    asyncHandler(async (req, res) => {
+      const { id } = req.params as any;
+      const content = await eventsService.getEventContent(id);
       
-      // Increment view count
-      await storage.incrementContentViewCount(content.id);
+      // TODO: Increment view count - to be implemented in service
+      // await eventsService.incrementContentViewCount(id);
       
       res.json(content);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch content" });
-    }
-  });
+    })
+  );
 
   app.post("/api/events/:id/contents", async (req, res) => {
     if (!req.isAuthenticated()) {

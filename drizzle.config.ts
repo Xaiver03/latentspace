@@ -12,7 +12,9 @@ export default defineConfig({
   schema: [
     "./shared/schema.ts", 
     "./shared/ai-matching-schema.ts",
-    "./shared/collaboration-schema.ts"
+    "./shared/collaboration-schema.ts",
+    "./shared/ai-marketplace-schema.ts",
+    "./shared/reputation-schema.ts"
   ],
   dialect: "postgresql",
   dbCredentials: {

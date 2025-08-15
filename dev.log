@@ -1,0 +1,365 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[dotenv@17.2.1] injecting env (3) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+4:59:05 PM [express] serving on port 5001
+4:59:14 PM [express] POST /api/auth/register 200 in 20ms
+4:59:14 PM [express] POST /api/auth/login 200 in 3ms
+4:59:14 PM [express] GET /api/users/profile 401 in 0ms :: {"error":"Authentication required"}
+4:59:14 PM [express] POST /api/matching/profile 401 in 1ms :: {"error":"Authentication required"}
+4:59:14 PM [express] POST /api/search 200 in 2ms
+4:59:14 PM [express] POST /api/search 200 in 2ms
+4:59:14 PM [express] GET /api/search/suggestions 401 in 0ms :: {"error":"Authentication required"}
+4:59:14 PM [express] POST /api/collaboration/workspaces 401 in 0ms :: {"error":"Authentication requi…
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 182ms :: {"agents":[],"totalCount":0}
+Get agent error: DrizzleQueryError: Failed query: select "id", "name", "description", "category", "subcategory", "logo", "screenshots", "website", "pricing_model", "price_range", "key_features", "use_cases", "integrations", "api_available", "platforms", "languages", "ai_model", "capabilities", "rating", "review_count", "usage_count", "popularity_score", "tags", "embedding", "created_by_id", "featured", "verified", "status", "created_at", "updated_at" from "ai_agents" where "ai_agents"."id" = $1 limit $2
+params: NaN,1
+    at NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+    at async AiMarketplaceService.getAgentWithDetails (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/services/ai-marketplace-service.ts:83:21)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes/ai-marketplace-routes.ts:59:19) {
+  query: 'select "id", "name", "description", "category", "subcategory", "logo", "screenshots", "website", "pricing_model", "price_range", "key_features", "use_cases", "integrations", "api_available", "platforms", "languages", "ai_model", "capabilities", "rating", "review_count", "usage_count", "popularity_score", "tags", "embedding", "created_by_id", "featured", "verified", "status", "created_at", "updated_at" from "ai_agents" where "ai_agents"."id" = $1 limit $2',
+  params: [ NaN, 1 ],
+  cause: error: invalid input syntax for type integer: "NaN"
+      at /Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:161:13)
+      at async NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:71:12)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+      at async AiMarketplaceService.getAgentWithDetails (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/services/ai-marketplace-service.ts:83:21)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes/ai-marketplace-routes.ts:59:19) {
+    length: 141,
+    severity: 'ERROR',
+    code: '22P02',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: "unnamed portal parameter $1 = '...'",
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'numutils.c',
+    line: '323',
+    routine: 'pg_strtoint32'
+  }
+}
+4:59:15 PM [express] GET /api/marketplace/agents/featured 500 in 167ms :: {"error":"Failed to get ag…
+4:59:15 PM [express] POST /api/reputation/initialize 401 in 0ms :: {"error":"Authentication required…
+4:59:15 PM [express] POST /api/events 401 in 0ms :: {"error":"Authentication required"}
+4:59:15 PM [express] GET /api/messages/conversations 401 in 0ms :: {"error":"Authentication required…
+4:59:15 PM [express] GET /api/events 200 in 68ms :: []
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 40ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 52ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 5ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/events 200 in 24ms :: []
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 2ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 1ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/events 200 in 1ms :: []
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 2ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 24ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/events 200 in 1ms :: []
+4:59:15 PM [express] GET /api/events 200 in 0ms :: []
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 1ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 2ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/events 200 in 12ms :: []
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 2ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 1ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 1ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/events 200 in 0ms :: []
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 1ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/events 200 in 0ms :: []
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 1ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 1ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 1ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/events 200 in 0ms :: []
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 0ms :: {"leaderboard":[]}
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 1ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/marketplace/agents 200 in 1ms :: {"agents":[],"totalCount":0}
+4:59:15 PM [express] GET /api/events 200 in 0ms :: []
+4:59:15 PM [express] GET /api/reputation/leaderboard 200 in 1ms :: {"leaderboard":[]}
+5:00:44 PM [express] POST /api/register 201 in 1226ms :: {"id":1,"username":"test_user_1755075643061…
+5:00:44 PM [express] POST /api/login 200 in 94ms :: {"id":1,"username":"test_user_1755075643061","em…
+5:00:44 PM [express] GET /api/users/profile 200 in 8ms :: {"id":1,"username":"test_user_175507564306…
+5:00:44 PM [express] POST /api/register 201 in 50ms :: {"id":2,"username":"test_user2_1755075643061"…
+5:00:44 PM [express] POST /api/login 200 in 75ms :: {"id":2,"username":"test_user2_1755075643061","e…
+5:00:44 PM [express] POST /api/matching/profile 400 in 36ms :: {"error":"Invalid profile data","deta…
+5:00:44 PM [express] POST /api/search 200 in 103ms
+5:00:44 PM [express] POST /api/search 200 in 14ms
+5:00:44 PM [express] GET /api/search/suggestions 200 in 4ms :: {"suggestions":["寻找技术合伙人","AI 创业活动","…
+5:00:44 PM [express] GET /api/search/trending 200 in 7ms :: {"trending":[{"query":"AI 合伙人","count":1…
+5:00:44 PM [express] POST /api/collaboration/workspaces 400 in 5ms :: {"error":"Invalid workspace da…
+5:00:44 PM [express] GET /api/marketplace/agents 200 in 34ms :: {"agents":[],"totalCount":0}
+Get agent error: DrizzleQueryError: Failed query: select "id", "name", "description", "category", "subcategory", "logo", "screenshots", "website", "pricing_model", "price_range", "key_features", "use_cases", "integrations", "api_available", "platforms", "languages", "ai_model", "capabilities", "rating", "review_count", "usage_count", "popularity_score", "tags", "embedding", "created_by_id", "featured", "verified", "status", "created_at", "updated_at" from "ai_agents" where "ai_agents"."id" = $1 limit $2
+params: NaN,1
+    at NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+    at async AiMarketplaceService.getAgentWithDetails (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/services/ai-marketplace-service.ts:83:21)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes/ai-marketplace-routes.ts:59:19) {
+  query: 'select "id", "name", "description", "category", "subcategory", "logo", "screenshots", "website", "pricing_model", "price_range", "key_features", "use_cases", "integrations", "api_available", "platforms", "languages", "ai_model", "capabilities", "rating", "review_count", "usage_count", "popularity_score", "tags", "embedding", "created_by_id", "featured", "verified", "status", "created_at", "updated_at" from "ai_agents" where "ai_agents"."id" = $1 limit $2',
+  params: [ NaN, 1 ],
+  cause: error: invalid input syntax for type integer: "NaN"
+      at /Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:161:13)
+      at async NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:71:12)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+      at async AiMarketplaceService.getAgentWithDetails (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/services/ai-marketplace-service.ts:83:21)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes/ai-marketplace-routes.ts:59:19) {
+    length: 141,
+    severity: 'ERROR',
+    code: '22P02',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: "unnamed portal parameter $1 = '...'",
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'numutils.c',
+    line: '323',
+    routine: 'pg_strtoint32'
+  }
+}
+5:00:44 PM [express] GET /api/marketplace/agents/featured 500 in 51ms :: {"error":"Failed to get age…
+5:00:45 PM [express] POST /api/reputation/initialize 200 in 1032ms :: {"id":1,"userId":2,"totalScore…
+5:00:45 PM [express] GET /api/reputation/my 200 in 6ms :: {"score":{"id":1,"userId":2,"totalScore":"…
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 2ms :: {"leaderboard":[{"user":{"id":2,"…
+5:00:45 PM [express] GET /api/reputation/achievements/catalog 200 in 1ms :: {"catalog":[{"type":"fir…
+5:00:45 PM [express] POST /api/events 400 in 1ms :: {"error":"Invalid event data","details":[{"code"…
+Get conversations error: DrizzleQueryError: Failed query: select CASE 
+          WHEN "sender_id" = $1 THEN "receiver_id"
+          ELSE "sender_id"
+        END as "otherUserId", MAX("id") as "lastMessageId", MAX("created_at") as "lastMessageTime" from "messages" where ("messages"."sender_id" = $2 or "messages"."receiver_id" = $3) group by CASE 
+        WHEN "messages"."sender_id" = $4 THEN "messages"."receiver_id"
+        ELSE "messages"."sender_id"
+      END order by MAX("messages"."created_at") desc
+params: 2,2,2,2
+    at NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+    at async DatabaseStorage.getUserConversations (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/storage.ts:412:27)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes.ts:800:29) {
+  query: 'select CASE \n' +
+    '          WHEN "sender_id" = $1 THEN "receiver_id"\n' +
+    '          ELSE "sender_id"\n' +
+    '        END as "otherUserId", MAX("id") as "lastMessageId", MAX("created_at") as "lastMessageTime" from "messages" where ("messages"."sender_id" = $2 or "messages"."receiver_id" = $3) group by CASE \n' +
+    '        WHEN "messages"."sender_id" = $4 THEN "messages"."receiver_id"\n' +
+    '        ELSE "messages"."sender_id"\n' +
+    '      END order by MAX("messages"."created_at") desc',
+  params: [ 2, 2, 2, 2 ],
+  cause: error: column "messages.sender_id" must appear in the GROUP BY clause or be used in an aggregate function
+      at /Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:161:13)
+      at async NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:71:12)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+      at async DatabaseStorage.getUserConversations (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/storage.ts:412:27)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes.ts:800:29) {
+    length: 181,
+    severity: 'ERROR',
+    code: '42803',
+    detail: undefined,
+    hint: undefined,
+    position: '29',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_agg.c',
+    line: '1427',
+    routine: 'check_ungrouped_columns_walker'
+  }
+}
+5:00:45 PM [express] GET /api/messages/conversations 500 in 17ms :: {"error":"Failed to fetch conver…
+5:00:45 PM [express] GET /api/events 200 in 26ms :: []
+5:00:45 PM [express] GET /api/events 200 in 26ms :: []
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 27ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 28ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 27ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/events 200 in 26ms :: []
+5:00:45 PM [express] GET /api/events 200 in 30ms :: []
+5:00:45 PM [express] GET /api/events 200 in 30ms :: []
+5:00:45 PM [express] GET /api/events 200 in 29ms :: []
+5:00:45 PM [express] GET /api/events 200 in 29ms :: []
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 32ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 34ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 29ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 34ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 32ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/events 200 in 27ms :: []
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 35ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 32ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 36ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 35ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 32ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 33ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/events 200 in 36ms :: []
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 26ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 25ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/events 200 in 16ms :: []
+5:00:45 PM [express] GET /api/reputation/leaderboard 200 in 15ms :: {"leaderboard":[{"user":{"id":2,…
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 36ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 21ms :: {"agents":[],"totalCount":0}
+5:00:45 PM [express] GET /api/marketplace/agents 200 in 18ms :: {"agents":[],"totalCount":0}
+5:02:13 PM [express] POST /api/register 201 in 48ms :: {"id":3,"username":"test_user_1755075733387",…
+5:02:13 PM [express] POST /api/login 200 in 29ms :: {"id":3,"username":"test_user_1755075733387","em…
+5:02:13 PM [express] GET /api/users/profile 200 in 4ms :: {"id":3,"username":"test_user_175507573338…
+5:02:13 PM [express] POST /api/register 201 in 28ms :: {"id":4,"username":"test_user2_1755075733387"…
+5:02:13 PM [express] POST /api/login 200 in 29ms :: {"id":4,"username":"test_user2_1755075733387","e…
+5:02:13 PM [express] POST /api/matching/profile 400 in 3ms :: {"error":"Invalid profile data","detai…
+5:02:13 PM [express] POST /api/search 200 in 9ms
+5:02:13 PM [express] POST /api/search 200 in 4ms
+5:02:13 PM [express] GET /api/search/suggestions 200 in 1ms :: {"suggestions":["寻找技术合伙人","AI 创业活动","…
+5:02:13 PM [express] GET /api/search/trending 200 in 1ms :: {"trending":[{"query":"AI 合伙人","count":1…
+5:02:13 PM [express] POST /api/collaboration/workspaces 400 in 1ms :: {"error":"Invalid workspace da…
+5:02:13 PM [express] GET /api/marketplace/agents 200 in 4ms :: {"agents":[],"totalCount":0}
+Get agent error: DrizzleQueryError: Failed query: select "id", "name", "description", "category", "subcategory", "logo", "screenshots", "website", "pricing_model", "price_range", "key_features", "use_cases", "integrations", "api_available", "platforms", "languages", "ai_model", "capabilities", "rating", "review_count", "usage_count", "popularity_score", "tags", "embedding", "created_by_id", "featured", "verified", "status", "created_at", "updated_at" from "ai_agents" where "ai_agents"."id" = $1 limit $2
+params: NaN,1
+    at NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+    at async AiMarketplaceService.getAgentWithDetails (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/services/ai-marketplace-service.ts:83:21)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes/ai-marketplace-routes.ts:59:19) {
+  query: 'select "id", "name", "description", "category", "subcategory", "logo", "screenshots", "website", "pricing_model", "price_range", "key_features", "use_cases", "integrations", "api_available", "platforms", "languages", "ai_model", "capabilities", "rating", "review_count", "usage_count", "popularity_score", "tags", "embedding", "created_by_id", "featured", "verified", "status", "created_at", "updated_at" from "ai_agents" where "ai_agents"."id" = $1 limit $2',
+  params: [ NaN, 1 ],
+  cause: error: invalid input syntax for type integer: "NaN"
+      at /Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:161:13)
+      at async NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:71:12)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+      at async AiMarketplaceService.getAgentWithDetails (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/services/ai-marketplace-service.ts:83:21)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes/ai-marketplace-routes.ts:59:19) {
+    length: 141,
+    severity: 'ERROR',
+    code: '22P02',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: "unnamed portal parameter $1 = '...'",
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'numutils.c',
+    line: '323',
+    routine: 'pg_strtoint32'
+  }
+}
+5:02:13 PM [express] GET /api/marketplace/agents/featured 500 in 10ms :: {"error":"Failed to get age…
+5:02:14 PM [express] POST /api/reputation/initialize 200 in 1010ms :: {"id":2,"userId":4,"totalScore…
+5:02:14 PM [express] GET /api/reputation/my 200 in 4ms :: {"score":{"id":2,"userId":4,"totalScore":"…
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 1ms :: {"leaderboard":[{"user":{"id":2,"…
+5:02:14 PM [express] GET /api/reputation/achievements/catalog 200 in 1ms :: {"catalog":[{"type":"fir…
+5:02:14 PM [express] POST /api/events 400 in 0ms :: {"error":"Invalid event data","details":[{"code"…
+Get conversations error: DrizzleQueryError: Failed query: select CASE 
+          WHEN "sender_id" = $1 THEN "receiver_id"
+          ELSE "sender_id"
+        END as "otherUserId", MAX("id") as "lastMessageId", MAX("created_at") as "lastMessageTime" from "messages" where ("messages"."sender_id" = $2 or "messages"."receiver_id" = $3) group by CASE 
+        WHEN "messages"."sender_id" = $4 THEN "messages"."receiver_id"
+        ELSE "messages"."sender_id"
+      END order by MAX("messages"."created_at") desc
+params: 4,4,4,4
+    at NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+    at async DatabaseStorage.getUserConversations (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/storage.ts:412:27)
+    at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes.ts:800:29) {
+  query: 'select CASE \n' +
+    '          WHEN "sender_id" = $1 THEN "receiver_id"\n' +
+    '          ELSE "sender_id"\n' +
+    '        END as "otherUserId", MAX("id") as "lastMessageId", MAX("created_at") as "lastMessageTime" from "messages" where ("messages"."sender_id" = $2 or "messages"."receiver_id" = $3) group by CASE \n' +
+    '        WHEN "messages"."sender_id" = $4 THEN "messages"."receiver_id"\n' +
+    '        ELSE "messages"."sender_id"\n' +
+    '      END order by MAX("messages"."created_at") desc',
+  params: [ 4, 4, 4, 4 ],
+  cause: error: column "messages.sender_id" must appear in the GROUP BY clause or be used in an aggregate function
+      at /Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:161:13)
+      at async NodePgPreparedQuery.queryWithCache (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/pg-core/session.ts:71:12)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/node_modules/src/node-postgres/session.ts:154:19)
+      at async DatabaseStorage.getUserConversations (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/storage.ts:412:27)
+      at async <anonymous> (/Users/rocalight/同步空间/miracleplus/ResearchFounderNetwork/server/routes.ts:800:29) {
+    length: 181,
+    severity: 'ERROR',
+    code: '42803',
+    detail: undefined,
+    hint: undefined,
+    position: '29',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_agg.c',
+    line: '1427',
+    routine: 'check_ungrouped_columns_walker'
+  }
+}
+5:02:14 PM [express] GET /api/messages/conversations 500 in 4ms :: {"error":"Failed to fetch convers…
+5:02:14 PM [express] GET /api/events 200 in 10ms :: []
+5:02:14 PM [express] GET /api/events 200 in 13ms :: []
+5:02:14 PM [express] GET /api/events 200 in 14ms :: []
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 15ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 15ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/events 200 in 14ms :: []
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 15ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/events 200 in 15ms :: []
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 17ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/events 200 in 15ms :: []
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 19ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 15ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/events 200 in 17ms :: []
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 16ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 17ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/events 200 in 19ms :: []
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 18ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/events 200 in 16ms :: []
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 19ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 17ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/events 200 in 19ms :: []
+5:02:14 PM [express] GET /api/reputation/leaderboard 200 in 19ms :: {"leaderboard":[{"user":{"id":2,…
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 18ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 20ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 17ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 17ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 18ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 18ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 20ms :: {"agents":[],"totalCount":0}
+5:02:14 PM [express] GET /api/marketplace/agents 200 in 19ms :: {"agents":[],"totalCount":0}
+5:03:27 PM [express] POST /api/register 201 in 44ms :: {"id":5,"username":"test_1755075807388","emai…
+5:03:27 PM [express] GET /api/users/profile 200 in 2ms :: {"id":5,"username":"test_1755075807388","e…
+5:03:27 PM [express] POST /api/events 400 in 2ms :: {"error":"Invalid event data","details":[{"code"…
+5:03:48 PM [express] POST /api/register 201 in 40ms :: {"id":6,"username":"test_1755075828483","emai…
+5:03:48 PM [express] GET /api/users/profile 200 in 1ms :: {"id":6,"username":"test_1755075828483","e…
+5:03:48 PM [express] POST /api/events 400 in 1ms :: {"error":"Invalid event data","details":[{"code"…
+5:05:00 PM [express] POST /api/register 201 in 36ms :: {"id":7,"username":"test_1755075900658","emai…
+5:05:00 PM [express] GET /api/users/profile 200 in 2ms :: {"id":7,"username":"test_1755075900658","e…
+5:05:00 PM [express] POST /api/events 400 in 1ms :: {"error":"Invalid event data","details":[{"code"…
+12:58:45 [vite] hmr update /src/App.tsx?v=1HPVm2c9tpkb1qaITiaqv, /src/index.css?v=1HPVm2c9tpkb1qaITiaqv
+12:58:56 [vite] hmr update /src/App.tsx?v=1HPVm2c9tpkb1qaITiaqv, /src/index.css?v=1HPVm2c9tpkb1qaITiaqv
