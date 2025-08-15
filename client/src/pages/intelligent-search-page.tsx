@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { LuSearch, LuFilter, LuSparkless, LuClock, LuTrendingUp, LuUser, LuCalendar, LuBox, LuFile, LuArrowRight, LuMapPin, LuBriefcase, LuCode } from "react-icons/lu";
+import { LuSearch, LuFilter, LuSparkles, LuClock, LuTrendingUp, LuUser, LuCalendar, LuBox, LuFile, LuArrowRight, LuMapPin, LuBriefcase, LuCode } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -234,7 +234,7 @@ export function IntelligentSearchPage() {
                 <Checkbox
                   id="semantic"
                   checked={semanticSearch}
-                  onCheckedChange={setSemanticSearch}
+                  onCheckedChange={(checked) => setSemanticSearch(checked === true)}
                 />
                 <Label htmlFor="semantic" className="text-sm">
                   语义搜索 <LuSparkles className="inline h-3 w-3" />

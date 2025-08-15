@@ -1,5 +1,6 @@
 import { storage } from "../storage";
 import { AppError } from "../middleware/error-handler";
+import { cacheService, Cacheable, CacheInvalidate } from "./cache-service";
 import type { 
   Event, 
   InsertEvent, 
@@ -43,6 +44,19 @@ export class EventsService {
     filters: EventFilters = {},
     pagination: PaginationParams = { page: 1, limit: 10, order: "desc" }
   ): Promise<PaginatedResult<Event>> {
+    // Generate cache key based on filters and pagination
+    const cacheKey = `events:${JSON.stringify({ filters, pagination })}`;
+    
+    // Try to get from cache
+    const cached = await cacheService.get<PaginatedResult<Event>>(cacheKey, {
+      namespace: "events",
+      ttl: 60 // Cache for 1 minute
+    });
+    
+    if (cached.hit && cached.data) {
+      return cached.data;
+    }
+    
     try {
       // For now, get all events and implement pagination in memory
       // In production, this should be done at the database level
@@ -89,7 +103,7 @@ export class EventsService {
       const offset = (pagination.page - 1) * pagination.limit;
       const paginatedEvents = filteredEvents.slice(offset, offset + pagination.limit);
 
-      return {
+      const result = {
         data: paginatedEvents,
         pagination: {
           page: pagination.page,
@@ -100,6 +114,14 @@ export class EventsService {
           hasPrev: pagination.page > 1,
         },
       };
+      
+      // Cache the result
+      await cacheService.set(cacheKey, result, {
+        namespace: "events",
+        ttl: 60 // Cache for 1 minute
+      });
+      
+      return result;
     } catch (error) {
       throw AppError.database("Failed to fetch events", error);
     }
@@ -125,7 +147,12 @@ export class EventsService {
         createdBy: userId,
       };
       
-      return await storage.createEvent(enrichedEventData);
+      const event = await storage.createEvent(enrichedEventData);
+      
+      // Invalidate events cache
+      await cacheService.deletePattern("events:*", "events");
+      
+      return event;
     } catch (error) {
       if (error?.message?.includes("duplicate") || error?.message?.includes("unique")) {
         throw AppError.conflict("Event with this title already exists");

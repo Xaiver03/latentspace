@@ -18,11 +18,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  LuTrophy, LuMedal, LuStar, LuShield, LuTrendingUp, LuClock, 
-  LuCoins, LuAward, LuGavel, LuLink, LuExternalLink, LuInfo,
-  LuThumbsUp, LuLock, LuUnlock, LuAlertTriangle, LuCheckCircle,
-  LuBarChart3, LuUsers, LuHeart, LuBrain, LuGitBranch
-} from "react-icons/lu";
+  Trophy, Medal, Star, Shield, TrendingUp, Clock, 
+  Coins, Award, Gavel, Link, ExternalLink, Info,
+  ThumbsUp, Lock, LockOpen, AlertTriangle, CheckCircle,
+  BarChart3, Users, Heart, Brain, GitBranch
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
@@ -225,12 +225,12 @@ export function ReputationDashboardPage() {
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case "match_success": return { icon: LuCheckCircle, color: "text-green-500" };
-      case "contribution": return { icon: LuGitBranch, color: "text-blue-500" };
-      case "peer_review": return { icon: LuThumbsUp, color: "text-purple-500" };
-      case "community_vote": return { icon: LuUsers, color: "text-orange-500" };
-      case "penalty": return { icon: LuAlertTriangle, color: "text-red-500" };
-      default: return { icon: LuCoins, color: "text-gray-500" };
+      case "match_success": return { icon: CheckCircle, color: "text-green-500" };
+      case "contribution": return { icon: GitBranch, color: "text-blue-500" };
+      case "peer_review": return { icon: ThumbsUp, color: "text-purple-500" };
+      case "community_vote": return { icon: Users, color: "text-orange-500" };
+      case "penalty": return { icon: AlertTriangle, color: "text-red-500" };
+      default: return { icon: Coins, color: "text-gray-500" };
     }
   };
 
@@ -480,7 +480,7 @@ export function ReputationDashboardPage() {
             <Card className="border-dashed">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <LuThumbsUp className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <ThumbsUp className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <h3 className="font-semibold mb-1">认可他人</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     为其他用户的技能背书
@@ -803,7 +803,7 @@ export function ReputationDashboardPage() {
                           </div>
                           {isUnlocked ? (
                             <Badge variant="secondary">
-                              <LuCheckCircle className="h-3 w-3 mr-1" />
+                              <CheckCircle className="h-3 w-3 mr-1" />
                               已解锁
                             </Badge>
                           ) : (
@@ -975,7 +975,7 @@ export function ReputationDashboardPage() {
                   </div>
                   <div className="flex gap-4">
                     <div className="p-2 rounded-full bg-green-50">
-                      <LuCheckCircle className="h-4 w-4 text-green-500" />
+                      <CheckCircle className="h-4 w-4 text-green-500" />
                     </div>
                     <div>
                       <h4 className="font-medium mb-1">项目承诺</h4>

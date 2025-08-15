@@ -16,10 +16,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  LuPlus, LuUsers, LuClipboardList, LuFileText, LuCalendar, LuBarChart3, 
-  LuTarget, LuClock, LuCheckCircle, LuTriangleAlert, LuMessageCircle,
-  LuPencil, LuTrash, LuMoreVertical, LuSend
-} from "react-icons/lu";
+  Plus, Users, ClipboardList, FileText, Calendar, BarChart3, 
+  Target, Clock, CheckCircle, AlertTriangle, MessageCircle,
+  Pencil, Trash, MoreHorizontal, Send
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Workspace {
@@ -241,7 +241,7 @@ export function CollaborationWorkspacePage() {
           <Dialog open={newWorkspaceOpen} onOpenChange={setNewWorkspaceOpen}>
             <DialogTrigger asChild>
               <Button>
-                <LuPlus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" />
                 创建工作空间
               </Button>
             </DialogTrigger>
@@ -361,7 +361,7 @@ export function CollaborationWorkspacePage() {
                   <div className="space-y-4">
                     {/* Team members */}
                     <div className="flex items-center gap-3">
-                      <LuUsers className="h-4 w-4 text-muted-foreground" />
+                      <Users className="h-4 w-4 text-muted-foreground" />
                       <div className="flex -space-x-2">
                         <Avatar className="h-6 w-6 border-2 border-background">
                           <AvatarImage src={workspace.founder.avatarUrl} />
@@ -410,12 +410,12 @@ export function CollaborationWorkspacePage() {
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1 text-blue-600">
-                          <LuClock className="h-3 w-3" />
+                          <Clock className="h-3 w-3" />
                           {workspace.taskStats.inProgress}
                         </span>
                         {workspace.taskStats.overdue > 0 && (
                           <span className="flex items-center gap-1 text-red-600">
-                            <LuTriangleAlert className="h-3 w-3" />
+                            <AlertTriangle className="h-3 w-3" />
                             {workspace.taskStats.overdue}
                           </span>
                         )}
@@ -435,13 +435,13 @@ export function CollaborationWorkspacePage() {
             <div className="col-span-full">
               <Card>
                 <CardContent className="py-12 text-center">
-                  <LuUsers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-lg text-muted-foreground mb-2">还没有工作空间</p>
                   <p className="text-sm text-muted-foreground mb-4">
                     创建第一个工作空间开始团队协作
                   </p>
                   <Button onClick={() => setNewWorkspaceOpen(true)}>
-                    <LuPlus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2" />
                     创建工作空间
                   </Button>
                 </CardContent>
@@ -469,7 +469,7 @@ export function CollaborationWorkspacePage() {
               <Dialog open={newTaskOpen} onOpenChange={setNewTaskOpen}>
                 <DialogTrigger asChild>
                   <Button>
-                    <LuPlus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2" />
                     新建任务
                   </Button>
                 </DialogTrigger>
@@ -620,7 +620,7 @@ export function CollaborationWorkspacePage() {
                               )}
                               {task.commentsCount > 0 && (
                                 <span className="flex items-center gap-1">
-                                  <LuMessageCircle className="h-3 w-3" />
+                                  <MessageCircle className="h-3 w-3" />
                                   {task.commentsCount}
                                 </span>
                               )}
@@ -660,13 +660,13 @@ export function CollaborationWorkspacePage() {
                   {tasks?.tasks.length === 0 && (
                     <Card>
                       <CardContent className="py-12 text-center">
-                        <LuClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-lg text-muted-foreground mb-2">还没有任务</p>
                         <p className="text-sm text-muted-foreground mb-4">
                           创建第一个任务开始工作
                         </p>
                         <Button onClick={() => setNewTaskOpen(true)}>
-                          <LuPlus className="h-4 w-4 mr-2" />
+                          <Plus className="h-4 w-4 mr-2" />
                           新建任务
                         </Button>
                       </CardContent>
@@ -679,7 +679,7 @@ export function CollaborationWorkspacePage() {
             <TabsContent value="documents">
               <Card>
                 <CardContent className="py-12 text-center">
-                  <LuFileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-lg text-muted-foreground mb-2">文档管理</p>
                   <p className="text-sm text-muted-foreground">
                     即将上线 - 团队文档协作功能
@@ -691,7 +691,7 @@ export function CollaborationWorkspacePage() {
             <TabsContent value="meetings">
               <Card>
                 <CardContent className="py-12 text-center">
-                  <LuCalendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-lg text-muted-foreground mb-2">会议管理</p>
                   <p className="text-sm text-muted-foreground">
                     即将上线 - 团队会议安排功能
@@ -703,7 +703,7 @@ export function CollaborationWorkspacePage() {
             <TabsContent value="analytics">
               <Card>
                 <CardContent className="py-12 text-center">
-                  <LuBarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-lg text-muted-foreground mb-2">数据分析</p>
                   <p className="text-sm text-muted-foreground">
                     即将上线 - 工作空间分析功能

@@ -10,6 +10,7 @@ import { eventsService } from "./services/events-service";
 import { validate, requireAuth, commonSchemas } from "./middleware/validation";
 import { AppError, asyncHandler } from "./middleware/error-handler";
 import { createResourceRateLimit, authRateLimit } from "./middleware/rate-limit";
+import { cache, userCache, invalidateCache } from "./middleware/cache";
 import { matchingEngine } from "./services/matching-engine";
 import { enhancedMatchingEngine } from "./services/enhanced-matching-engine";
 import { matchingAnalytics } from "./services/matching-analytics";
@@ -40,8 +41,9 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Events routes with improved error handling and pagination
+  // Events routes with improved error handling, pagination and caching
   app.get("/api/events", 
+    cache({ ttl: 60, namespace: "events" }), // Cache for 1 minute
     validate({ query: commonSchemas.pagination.merge(commonSchemas.search) }),
     asyncHandler(async (req, res) => {
       const { page, limit, sort, order, q: search, category } = req.query as any;
@@ -67,6 +69,7 @@ export function registerRoutes(app: Express): Server {
     createResourceRateLimit,
     requireAuth,
     validate({ body: insertEventSchema.omit({ createdBy: true }) }),
+    invalidateCache(["events:*"], "events"), // Invalidate all events cache
     asyncHandler(async (req, res) => {
       const eventData = req.body as any;
       const event = await eventsService.createEvent(eventData, req.user!.id);
