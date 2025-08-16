@@ -205,11 +205,11 @@ export function ReputationDashboardPage() {
 
   const getRankIcon = (rank: string) => {
     switch (rank) {
-      case "visionary": return { icon: LuTrophy, color: "text-yellow-500" };
-      case "leader": return { icon: LuMedal, color: "text-purple-500" };
-      case "expert": return { icon: LuStar, color: "text-blue-500" };
-      case "contributor": return { icon: LuAward, color: "text-green-500" };
-      default: return { icon: LuShield, color: "text-gray-500" };
+      case "visionary": return { icon: Trophy, color: "text-yellow-500" };
+      case "leader": return { icon: Medal, color: "text-purple-500" };
+      case "expert": return { icon: Star, color: "text-blue-500" };
+      case "contributor": return { icon: Award, color: "text-green-500" };
+      default: return { icon: Shield, color: "text-gray-500" };
     }
   };
 
@@ -296,11 +296,11 @@ export function ReputationDashboardPage() {
           {stats?.score.walletAddress && (
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="font-mono">
-                <LuLink className="h-3 w-3 mr-1" />
+                <Link className="h-3 w-3 mr-1" />
                 {stats.score.walletAddress.slice(0, 6)}...{stats.score.walletAddress.slice(-4)}
               </Badge>
               <Button variant="ghost" size="sm">
-                <LuExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -349,7 +349,7 @@ export function ReputationDashboardPage() {
                 />
               </div>
               <div className="p-3 rounded-full text-blue-500 bg-blue-50">
-                <LuShield className="h-6 w-6" />
+                <Shield className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
@@ -370,7 +370,7 @@ export function ReputationDashboardPage() {
                 </p>
               </div>
               <div className="p-3 rounded-full text-green-500 bg-green-50">
-                <LuHeart className="h-6 w-6" />
+                <Heart className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
@@ -462,7 +462,7 @@ export function ReputationDashboardPage() {
                           </p>
                           {tx.txHash && (
                             <Badge variant="outline" className="text-xs">
-                              <LuLink className="h-2 w-2 mr-1" />
+                              <Link className="h-2 w-2 mr-1" />
                               已上链
                             </Badge>
                           )}
@@ -582,7 +582,7 @@ export function ReputationDashboardPage() {
             <Card className="border-dashed">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <LuLock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <h3 className="font-semibold mb-1">质押信誉</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     为承诺质押信誉分
@@ -672,7 +672,7 @@ export function ReputationDashboardPage() {
             <Card className="border-dashed">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <LuGavel className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <Gavel className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <h3 className="font-semibold mb-1">参与治理</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     对平台决策进行投票
@@ -723,7 +723,7 @@ export function ReputationDashboardPage() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Badge variant="secondary" className="text-xs cursor-pointer">
-                                  <LuLink className="h-3 w-3 mr-1" />
+                                  <Link className="h-3 w-3 mr-1" />
                                   {tx.status === "confirmed" ? "已确认" : "待确认"}
                                 </Badge>
                               </TooltipTrigger>
@@ -756,7 +756,7 @@ export function ReputationDashboardPage() {
                       <CardContent className="pt-6">
                         <div className="text-center">
                           <div className="mb-4">
-                            <LuAward className="h-12 w-12 mx-auto text-yellow-500" />
+                            <Award className="h-12 w-12 mx-auto text-yellow-500" />
                           </div>
                           <h3 className="font-semibold mb-1">{achievement.title}</h3>
                           <p className="text-sm text-muted-foreground mb-3">
@@ -840,7 +840,7 @@ export function ReputationDashboardPage() {
                           <p className="font-medium">{endorsement.endorserName}</p>
                           <div className="flex items-center gap-1">
                             {[...Array(5)].map((_, i) => (
-                              <LuStar
+                              <Star
                                 key={i}
                                 className={`h-3 w-3 ${
                                   i < endorsement.level
@@ -948,7 +948,7 @@ export function ReputationDashboardPage() {
                   
                   {stats?.activeStakes.length === 0 && (
                     <div className="text-center py-8">
-                      <LuLock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">暂无活跃质押</p>
                     </div>
                   )}
@@ -964,7 +964,7 @@ export function ReputationDashboardPage() {
                 <div className="space-y-4">
                   <div className="flex gap-4">
                     <div className="p-2 rounded-full bg-blue-50">
-                      <LuInfo className="h-4 w-4 text-blue-500" />
+                      <Info className="h-4 w-4 text-blue-500" />
                     </div>
                     <div>
                       <h4 className="font-medium mb-1">匹配保证</h4>
@@ -986,7 +986,7 @@ export function ReputationDashboardPage() {
                   </div>
                   <div className="flex gap-4">
                     <div className="p-2 rounded-full bg-purple-50">
-                      <LuShield className="h-4 w-4 text-purple-500" />
+                      <Shield className="h-4 w-4 text-purple-500" />
                     </div>
                     <div>
                       <h4 className="font-medium mb-1">质量保证</h4>

@@ -16,7 +16,12 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("user"), // user, admin
   isApproved: boolean("is_approved").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  emailIdx: index("users_email_idx").on(table.email),
+  usernameIdx: index("users_username_idx").on(table.username),
+  roleIdx: index("users_role_idx").on(table.role),
+  researchFieldIdx: index("users_research_field_idx").on(table.researchField),
+}));
 
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
@@ -95,6 +100,7 @@ export const cofounderApplications = pgTable("cofounder_applications", {
   matchingScore: numeric("matching_score"), // Calculated matching quality score
   
   status: text("status").notNull().default("pending"), // pending, approved, rejected
+  applicationType: text("application_type").notNull().default("basic"), // basic, advanced
   reviewedBy: integer("reviewed_by").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -102,6 +108,11 @@ export const cofounderApplications = pgTable("cofounder_applications", {
   userIdx: uniqueIndex("cofounder_apps_user_idx").on(table.userId),
   statusIdx: index("cofounder_apps_status_idx").on(table.status),
   verifiedIdx: index("cofounder_apps_verified_idx").on(table.isVerified),
+  researchFieldIdx: index("cofounder_apps_research_field_idx").on(table.researchField),
+  locationIdx: index("cofounder_apps_location_idx").on(table.preferredLocation),
+  timeCommitmentIdx: index("cofounder_apps_time_commitment_idx").on(table.timeCommitment),
+  startupStageIdx: index("cofounder_apps_startup_stage_idx").on(table.startupStage),
+  technicalIdx: index("cofounder_apps_technical_idx").on(table.isTechnical),
 }));
 
 export const matches = pgTable("matches", {
@@ -247,6 +258,26 @@ export const collaborationSpaces = pgTable("collaboration_spaces", {
   matchIdx: uniqueIndex("collab_match_idx").on(table.matchId),
 }));
 
+// Interview schedules for advanced applications
+export const interviewSchedules = pgTable("interview_schedules", {
+  id: serial("id").primaryKey(),
+  candidateId: integer("candidate_id").references(() => users.id).notNull(),
+  interviewerId: integer("interviewer_id").references(() => users.id).notNull(),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  meetingLink: text("meeting_link"),
+  status: text("status").notNull().default("pending"), // pending, confirmed, completed, cancelled
+  rating: integer("rating"), // 1-5 scale
+  feedback: text("feedback"),
+  recommendation: text("recommendation"), // approved, rejected, needs_more_info
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  candidateIdx: index("interview_candidate_idx").on(table.candidateId),
+  interviewerIdx: index("interview_interviewer_idx").on(table.interviewerId),
+  dateIdx: index("interview_date_idx").on(table.scheduledDate),
+  statusIdx: index("interview_status_idx").on(table.status),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -362,6 +393,11 @@ export const insertCollaborationSpaceSchema = createInsertSchema(collaborationSp
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertInterviewScheduleSchema = createInsertSchema(interviewSchedules).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Algorithm Performance Tracking
@@ -517,6 +553,8 @@ export type MatchFeedback = typeof matchFeedback.$inferSelect;
 export type InsertMatchFeedback = z.infer<typeof insertMatchFeedbackSchema>;
 export type CollaborationSpace = typeof collaborationSpaces.$inferSelect;
 export type InsertCollaborationSpace = z.infer<typeof insertCollaborationSpaceSchema>;
+export type InterviewSchedule = typeof interviewSchedules.$inferSelect;
+export type InsertInterviewSchedule = z.infer<typeof insertInterviewScheduleSchema>;
 export type AlgorithmPerformance = typeof algorithmPerformance.$inferSelect;
 export type InsertAlgorithmPerformance = z.infer<typeof insertAlgorithmPerformanceSchema>;
 export type ContentInteraction = typeof contentInteractions.$inferSelect;

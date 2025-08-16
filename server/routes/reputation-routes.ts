@@ -71,7 +71,7 @@ router.post("/transactions", requireAuth, async (req, res) => {
       amount: parseFloat(data.amount),
       reason: data.reason,
       metadata: data.metadata,
-      fromUserId: data.fromUserId,
+      fromUserId: data.fromUserId || undefined,
     });
     res.json(transaction);
   } catch (error) {

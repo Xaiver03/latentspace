@@ -10,6 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { LuHeart, LuX, LuMessageCircle, LuCalendar, LuMapPin, LuClock, LuBriefcase, LuCode, LuTarget, LuTriangleAlert } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Type-safe window extension
+declare global {
+  interface Window {
+    candidateShownAt?: number;
+  }
+}
+
 interface MatchCandidate {
   userId: number;
   score: number;
@@ -90,20 +97,32 @@ export function AiMatchingPage() {
 
     setSwipeDirection(action === "skip" ? "left" : "right");
     
-    await recordInteraction.mutateAsync({
-      targetUserId: currentCandidate.userId,
-      action,
-      latencyMs: Date.now() - (window as any).candidateShownAt,
-    });
+    try {
+      const startTime = window.candidateShownAt || Date.now();
+      await recordInteraction.mutateAsync({
+        targetUserId: currentCandidate.userId,
+        action,
+        latencyMs: Date.now() - startTime,
+      });
 
-    setTimeout(() => {
-      setCurrentIndex((prev) => prev + 1);
+      setTimeout(() => {
+        setCurrentIndex((prev) => prev + 1);
+        setSwipeDirection(null);
+        window.candidateShownAt = Date.now();
+      }, 300);
+    } catch (error) {
+      console.error('Failed to record interaction:', error);
+      // Reset swipe direction on error to prevent UI stuck state
       setSwipeDirection(null);
-      (window as any).candidateShownAt = Date.now();
-    }, 300);
+      // Still allow user to proceed to next candidate
+      setTimeout(() => {
+        setCurrentIndex((prev) => prev + 1);
+        window.candidateShownAt = Date.now();
+      }, 300);
+    }
   };
 
-  const roleIconMap: Record<string, any> = {
+  const roleIconMap: Record<string, React.ComponentType<{ size?: number }>> = {
     CEO: LuTarget,
     CTO: LuCode,
     CPO: LuBriefcase,
@@ -269,6 +288,8 @@ export function AiMatchingPage() {
                         variant="outline"
                         className="rounded-full h-14 w-14"
                         onClick={() => handleAction("skip")}
+                        aria-label={`跳过 ${currentCandidate.user.fullName}`}
+                        title="跳过此候选人"
                       >
                         <LuX className="h-6 w-6" />
                       </Button>
@@ -277,6 +298,8 @@ export function AiMatchingPage() {
                         variant="default"
                         className="rounded-full h-16 w-16"
                         onClick={() => handleAction("like")}
+                        aria-label={`喜欢 ${currentCandidate.user.fullName}`}
+                        title="表示对此候选人感兴趣"
                       >
                         <LuHeart className="h-7 w-7" />
                       </Button>
@@ -285,6 +308,8 @@ export function AiMatchingPage() {
                         variant="outline"
                         className="rounded-full h-14 w-14"
                         onClick={() => handleAction("connect")}
+                        aria-label={`联系 ${currentCandidate.user.fullName}`}
+                        title="直接发起对话"
                       >
                         <LuMessageCircle className="h-6 w-6" />
                       </Button>

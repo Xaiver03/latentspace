@@ -4,6 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./middleware/error-handler";
 import { apiRateLimit } from "./middleware/rate-limit";
 import { securityHeaders, sanitizeInput, sessionTimeout } from "./middleware/security";
+import { monitoringService } from "./services/monitoring-service.js";
+import { closeDatabasePool } from "./config/database.js";
 
 const app = express();
 
@@ -65,5 +67,32 @@ app.use((req, res, next) => {
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5001;
   server.listen(port, "localhost", () => {
     log(`serving on port ${port}`);
+    
+    // Start monitoring service in production
+    if (process.env.NODE_ENV === 'production') {
+      monitoringService.start(60000); // Check every minute
+      log('🔍 Production monitoring started');
+    }
+  });
+
+  // Graceful shutdown handling
+  process.on('SIGTERM', async () => {
+    log('SIGTERM received, shutting down gracefully...');
+    monitoringService.stop();
+    await closeDatabasePool();
+    server.close(() => {
+      log('Process terminated');
+      process.exit(0);
+    });
+  });
+
+  process.on('SIGINT', async () => {
+    log('SIGINT received, shutting down gracefully...');
+    monitoringService.stop();
+    await closeDatabasePool();
+    server.close(() => {
+      log('Process terminated');
+      process.exit(0);
+    });
   });
 })();

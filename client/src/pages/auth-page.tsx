@@ -178,7 +178,11 @@ export default function AuthPage() {
                   <div>
                     <Label htmlFor="researchField">研究领域</Label>
                     <Select onValueChange={(value) => registerForm.setValue("researchField", value)}>
-                      <SelectTrigger>
+                      <SelectTrigger 
+                        id="researchField"
+                        aria-label="选择研究领域"
+                        aria-describedby={registerForm.formState.errors.researchField ? "researchField-error" : undefined}
+                      >
                         <SelectValue placeholder="请选择研究领域" />
                       </SelectTrigger>
                       <SelectContent>
@@ -190,7 +194,7 @@ export default function AuthPage() {
                       </SelectContent>
                     </Select>
                     {registerForm.formState.errors.researchField && (
-                      <p className="text-sm text-red-500 mt-1">
+                      <p id="researchField-error" className="text-sm text-red-500 mt-1" role="alert">
                         {registerForm.formState.errors.researchField.message}
                       </p>
                     )}

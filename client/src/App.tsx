@@ -20,6 +20,9 @@ import { MessagesPage } from "@/pages/messages-page";
 import MatchingAnalyticsPage from "@/pages/matching-analytics-page";
 import ContentDiscoveryPage from "@/pages/content-discovery-page";
 import { AiMatchingPage } from "@/pages/ai-matching-page";
+import { TinderMatchingPage } from "@/pages/tinder-matching-page";
+import { InterviewEvaluationPage } from "@/pages/interview-evaluation-page";
+import { ABTestingPage } from "@/pages/ab-testing-page";
 import { IntelligentSearchPage } from "@/pages/intelligent-search-page";
 import { CollaborationWorkspacePage } from "@/pages/collaboration-workspace-page";
 import { AiMarketplacePage } from "@/pages/ai-marketplace-page";
@@ -37,6 +40,7 @@ function Router() {
       <ProtectedRoute path="/platform/community" component={CommunityPage} />
       <ProtectedRoute path="/platform/matching" component={EnhancedMatchingPage} />
       <ProtectedRoute path="/platform/ai-matching" component={AiMatchingPage} />
+      <ProtectedRoute path="/platform/tinder-matching" component={TinderMatchingPage} />
       <ProtectedRoute path="/platform/search" component={IntelligentSearchPage} />
       <ProtectedRoute path="/platform/workspace" component={CollaborationWorkspacePage} />
       <ProtectedRoute path="/platform/marketplace" component={AiMarketplacePage} />
@@ -46,6 +50,8 @@ function Router() {
       <ProtectedRoute path="/platform/analytics" component={MatchingAnalyticsPage} />
       <ProtectedRoute path="/platform/discovery" component={ContentDiscoveryPage} />
       <ProtectedRoute path="/platform/admin" component={AdvancedAdminPage} />
+      <ProtectedRoute path="/platform/admin/interviews" component={InterviewEvaluationPage} />
+      <ProtectedRoute path="/platform/admin/ab-testing" component={ABTestingPage} />
       <Route component={NotFound} />
     </Switch>
   );

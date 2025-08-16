@@ -64,14 +64,14 @@ export class AiMarketplaceService {
   async createAgent(data: InsertAiAgent, createdById: number): Promise<AgentWithDetails> {
     // Generate embedding for the agent
     const textForEmbedding = `${data.name} ${data.description} ${data.keyFeatures?.join(' ')} ${data.useCases?.join(' ')} ${data.tags?.join(' ')}`;
-    const embeddingResult = await embeddingService.generateTextEmbedding(textForEmbedding);
+    const embeddingResult = await embeddingService.generateSearchEmbedding(textForEmbedding);
     
     const [agent] = await db
       .insert(aiAgents)
       .values({
         ...data,
         createdById,
-        embedding: embeddingResult.embedding,
+        embedding: embeddingResult,
         status: 'pending_review', // New agents need review
       })
       .returning();
@@ -101,6 +101,12 @@ export class AiMarketplaceService {
       .where(eq(users.id, agent.createdById))
       .limit(1);
 
+    // Convert null to undefined for type consistency
+    const creatorWithCorrectTypes = creator ? {
+      ...creator,
+      avatarUrl: creator.avatarUrl || undefined
+    } : null;
+
     // Get review statistics
     const reviewStats = await this.getAgentReviewStats(agentId);
 
@@ -121,9 +127,13 @@ export class AiMarketplaceService {
     // Get similar agents
     const similarAgents = await this.getSimilarAgents(agentId, 5);
 
+    if (!creatorWithCorrectTypes) {
+      throw new Error("Creator not found");
+    }
+
     return {
       ...agent,
-      creator,
+      creator: creatorWithCorrectTypes,
       reviewStats,
       isBookmarked,
       similarAgents,
@@ -145,9 +155,9 @@ export class AiMarketplaceService {
     if (query.trim()) {
       if (filters.semanticSearch) {
         // Semantic search using embeddings
-        const embeddingResult = await embeddingService.generateTextEmbedding(query);
+        const embeddingResult = await embeddingService.generateSearchEmbedding(query);
         conditions.push(
-          sql`${aiAgents.embedding} <-> ${embeddingResult.embedding} < 0.8`
+          sql`${aiAgents.embedding} <-> ${embeddingResult} < 0.8`
         );
       } else {
         // Traditional text search

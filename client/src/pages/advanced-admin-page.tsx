@@ -34,7 +34,16 @@ import {
   Globe,
   Database,
   Server,
-  Wifi
+  Wifi,
+  Brain,
+  Settings,
+  Zap,
+  DollarSign,
+  AlertCircle,
+  Play,
+  Pause,
+  RotateCcw,
+  Monitor
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 
@@ -111,6 +120,35 @@ interface SystemAlert {
   resolved: boolean;
 }
 
+interface AIProvider {
+  id: string;
+  name: string;
+  displayName: string;
+  enabled: boolean;
+  status: 'healthy' | 'degraded' | 'down';
+  config: {
+    apiKey: string;
+    baseUrl: string;
+    priority: number;
+  };
+  metrics: {
+    requestCount: number;
+    successRate: number;
+    averageLatency: number;
+    totalCost: number;
+  };
+}
+
+interface AISystemStats {
+  totalRequests: number;
+  averageLatency: number;
+  totalCost: number;
+  cacheHitRate: number;
+  activeProviders: number;
+  emergencyMode: boolean;
+  routingStrategy: string;
+}
+
 const apiRequest = async (method: string, url: string, data?: any) => {
   const response = await fetch(url, {
     method,
@@ -134,6 +172,8 @@ export default function AdvancedAdminPage() {
   const [userFilter, setUserFilter] = useState({ search: '', role: '', status: '' });
   const [contentFilter, setContentFilter] = useState<'event' | 'product' | 'application' | ''>('');
   const [announcementDialog, setAnnouncementDialog] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider | null>(null);
+  const [aiConfigDialog, setAiConfigDialog] = useState(false);
 
   // API Queries
   const { data: platformStats, isLoading: statsLoading } = useQuery<PlatformStats>({
@@ -157,6 +197,18 @@ export default function AdvancedAdminPage() {
   const { data: systemAlerts = [], isLoading: alertsLoading } = useQuery<SystemAlert[]>({
     queryKey: ["/api/admin/alerts"],
     queryFn: () => apiRequest("GET", "/api/admin/alerts"),
+    enabled: !!user && user.role === "admin",
+  });
+
+  const { data: aiProviders = [], isLoading: aiProvidersLoading } = useQuery<AIProvider[]>({
+    queryKey: ["/api/admin/ai/providers"],
+    queryFn: () => apiRequest("GET", "/api/admin/ai/providers"),
+    enabled: !!user && user.role === "admin",
+  });
+
+  const { data: aiSystemStats, isLoading: aiStatsLoading } = useQuery<AISystemStats>({
+    queryKey: ["/api/admin/ai/stats"],
+    queryFn: () => apiRequest("GET", "/api/admin/ai/stats"),
     enabled: !!user && user.role === "admin",
   });
 
@@ -210,6 +262,39 @@ export default function AdvancedAdminPage() {
     },
   });
 
+  const updateAIProviderMutation = useMutation({
+    mutationFn: ({ providerId, enabled, config }: { providerId: string; enabled?: boolean; config?: any }) =>
+      apiRequest("PUT", `/api/admin/ai/providers/${providerId}`, { enabled, config }),
+    onSuccess: () => {
+      toast({ title: "更新成功", description: "AI提供商配置已更新" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/ai/providers"] });
+      setAiConfigDialog(false);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "更新失败", 
+        description: error.error || "更新失败，请重试",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const updateAIRoutingMutation = useMutation({
+    mutationFn: (strategy: string) =>
+      apiRequest("PUT", "/api/admin/ai/routing", { strategy }),
+    onSuccess: () => {
+      toast({ title: "更新成功", description: "AI路由策略已更新" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/ai/stats"] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "更新失败", 
+        description: error.error || "更新失败，请重试",
+        variant: "destructive" 
+      });
+    },
+  });
+
   if (!user || user.role !== "admin") {
     return (
       <div className="container mx-auto py-8">
@@ -234,10 +319,12 @@ export default function AdvancedAdminPage() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview">总览</TabsTrigger>
             <TabsTrigger value="users">用户管理</TabsTrigger>
             <TabsTrigger value="content">内容审核</TabsTrigger>
+            <TabsTrigger value="interviews">面试评估</TabsTrigger>
+            <TabsTrigger value="ai">AI管理</TabsTrigger>
             <TabsTrigger value="system">系统监控</TabsTrigger>
             <TabsTrigger value="notifications">通知管理</TabsTrigger>
             <TabsTrigger value="analytics">数据分析</TabsTrigger>
@@ -609,6 +696,275 @@ export default function AdvancedAdminPage() {
                 </ScrollArea>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="ai" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold">AI系统管理</h2>
+              <Dialog open={aiConfigDialog} onOpenChange={setAiConfigDialog}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Settings className="w-4 h-4 mr-2" />
+                    系统配置
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>AI系统配置</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-6">
+                    <div>
+                      <Label>路由策略</Label>
+                      <Select 
+                        value={aiSystemStats?.routingStrategy || 'cost-optimized'} 
+                        onValueChange={(strategy) => updateAIRoutingMutation.mutate(strategy)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cost-optimized">成本优化</SelectItem>
+                          <SelectItem value="performance-optimized">性能优化</SelectItem>
+                          <SelectItem value="quality-optimized">质量优化</SelectItem>
+                          <SelectItem value="round-robin">轮询平衡</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {aiSystemStats?.emergencyMode && (
+                      <div className="p-4 bg-red-50 border-red-200 border rounded-lg">
+                        <div className="flex items-center">
+                          <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                          <span className="text-red-700 font-medium">紧急模式已启用</span>
+                        </div>
+                        <p className="text-red-600 text-sm mt-1">系统正在使用备用AI提供商</p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* AI System Overview */}
+            {aiStatsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-6">
+                      <div className="animate-pulse">
+                        <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : aiSystemStats ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold text-blue-600">{aiSystemStats.totalRequests}</p>
+                        <p className="text-sm text-gray-600">总请求数</p>
+                      </div>
+                      <Brain className="w-8 h-8 text-blue-500" />
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">
+                      平均延迟: {aiSystemStats.averageLatency.toFixed(0)}ms
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold text-green-600">{aiSystemStats.cacheHitRate.toFixed(1)}%</p>
+                        <p className="text-sm text-gray-600">缓存命中率</p>
+                      </div>
+                      <Zap className="w-8 h-8 text-green-500" />
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">
+                      性能优化良好
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold text-purple-600">{aiSystemStats.activeProviders}</p>
+                        <p className="text-sm text-gray-600">活跃提供商</p>
+                      </div>
+                      <Server className="w-8 h-8 text-purple-500" />
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">
+                      策略: {aiSystemStats.routingStrategy}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold text-orange-600">¥{aiSystemStats.totalCost.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">总成本</p>
+                      </div>
+                      <DollarSign className="w-8 h-8 text-orange-500" />
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">
+                      本月支出
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
+
+            {/* AI Providers Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Monitor className="w-5 h-5 mr-2" />
+                  AI提供商管理
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-96">
+                  {aiProvidersLoading ? (
+                    <div className="p-6">加载中...</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {aiProviders.map((provider) => (
+                        <div key={provider.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-3 h-3 rounded-full ${
+                                provider.status === 'healthy' ? 'bg-green-500' :
+                                provider.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}></div>
+                              <div>
+                                <h4 className="font-medium">{provider.displayName}</h4>
+                                <p className="text-sm text-gray-500">{provider.name}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant={provider.enabled ? "default" : "secondary"}>
+                                {provider.enabled ? "启用" : "禁用"}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => updateAIProviderMutation.mutate({
+                                  providerId: provider.id,
+                                  enabled: !provider.enabled
+                                })}
+                              >
+                                {provider.enabled ? (
+                                  <Pause className="w-4 h-4" />
+                                ) : (
+                                  <Play className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setSelectedProvider(provider)}
+                              >
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-4 mt-4 text-sm">
+                            <div>
+                              <p className="text-gray-500">请求数</p>
+                              <p className="font-medium">{provider.metrics.requestCount}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">成功率</p>
+                              <p className="font-medium">{(provider.metrics.successRate * 100).toFixed(1)}%</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">平均延迟</p>
+                              <p className="font-medium">{provider.metrics.averageLatency.toFixed(0)}ms</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">总成本</p>
+                              <p className="font-medium">¥{provider.metrics.totalCost.toFixed(2)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            {/* Provider Detail Modal */}
+            <Dialog open={!!selectedProvider} onOpenChange={() => setSelectedProvider(null)}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>提供商配置 - {selectedProvider?.displayName}</DialogTitle>
+                </DialogHeader>
+                {selectedProvider && (
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target as HTMLFormElement);
+                    updateAIProviderMutation.mutate({
+                      providerId: selectedProvider.id,
+                      config: {
+                        apiKey: formData.get('apiKey') as string,
+                        priority: parseInt(formData.get('priority') as string),
+                      }
+                    });
+                  }}>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="apiKey">API密钥</Label>
+                        <Input 
+                          id="apiKey" 
+                          name="apiKey" 
+                          type="password"
+                          defaultValue={selectedProvider.config.apiKey} 
+                          placeholder="输入API密钥"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="priority">优先级</Label>
+                        <Input 
+                          id="priority" 
+                          name="priority" 
+                          type="number"
+                          defaultValue={selectedProvider.config.priority} 
+                          min="1" 
+                          max="10"
+                        />
+                      </div>
+                      <div>
+                        <Label>基础URL</Label>
+                        <p className="text-sm text-gray-600">{selectedProvider.config.baseUrl}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button type="submit" disabled={updateAIProviderMutation.isPending}>
+                          {updateAIProviderMutation.isPending ? '更新中...' : '保存配置'}
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => apiRequest("POST", `/api/admin/ai/providers/${selectedProvider.id}/test`)}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          测试连接
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">

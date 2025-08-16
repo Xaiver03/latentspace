@@ -10,10 +10,10 @@ import {
   reputationRules,
   type ReputationScore,
   type ReputationTransaction,
-  type InsertReputationTransactionSchema,
-  type InsertEndorsementSchema,
-  type InsertStakeSchema,
-  type InsertGovernanceProposalSchema,
+  insertReputationTransactionSchema,
+  insertEndorsementSchema,
+  insertStakeSchema,
+  insertGovernanceProposalSchema,
 } from "@shared/reputation-schema";
 import { users } from "@shared/schema";
 import { eq, and, or, desc, asc, sql, gte, lte, between } from "drizzle-orm";
@@ -170,7 +170,7 @@ export class ReputationService {
       endorsements: endorsements.map(e => ({
         ...e.endorsement,
         endorserName: e.endorser.fullName,
-        endorserAvatar: e.endorser.avatarUrl,
+        endorserAvatar: e.endorser.avatarUrl || undefined,
       })),
       activeStakes,
       rank: rankInfo,
@@ -258,7 +258,7 @@ export class ReputationService {
     }
 
     // Update level and rank based on new total score
-    const newTotalScore = parseFloat(score.totalScore) + amount;
+    const newTotalScore = parseFloat(score.totalScore || "100.00") + amount;
     updates.level = Math.floor(newTotalScore / 100) + 1;
     updates.rank = this.calculateRank(newTotalScore);
 
@@ -281,7 +281,7 @@ export class ReputationService {
     nextRank: string;
     progress: number;
   } {
-    const totalScore = parseFloat(score.totalScore);
+    const totalScore = parseFloat(score.totalScore || "100.00");
     const ranks = [
       { name: "newcomer", min: 0, max: 500 },
       { name: "contributor", min: 500, max: 1000 },
@@ -322,7 +322,7 @@ export class ReputationService {
         description: "Successfully completed your first co-founder match",
         condition: async () => {
           const score = await this.getOrCreateScore(userId);
-          return score.successfulMatches === 1;
+          return (score.successfulMatches || 0) === 1;
         },
         maxProgress: 1,
         rarity: "common",
@@ -333,7 +333,7 @@ export class ReputationService {
         description: "Successfully completed 10 co-founder matches",
         condition: async () => {
           const score = await this.getOrCreateScore(userId);
-          return score.successfulMatches >= 10;
+          return (score.successfulMatches || 0) >= 10;
         },
         maxProgress: 10,
         rarity: "rare",
@@ -344,7 +344,7 @@ export class ReputationService {
         description: "Reached trust score of 0.8 or higher",
         condition: async () => {
           const score = await this.getOrCreateScore(userId);
-          return parseFloat(score.trustScore) >= 0.8;
+          return parseFloat(score.trustScore || "0.50") >= 0.8;
         },
         maxProgress: 1,
         rarity: "epic",
@@ -428,7 +428,7 @@ export class ReputationService {
 
   // ===== ENDORSEMENTS =====
 
-  async createEndorsement(data: InsertEndorsementSchema & { endorserId: number }): Promise<void> {
+  async createEndorsement(data: typeof insertEndorsementSchema._type & { endorserId: number }): Promise<void> {
     // Check if already endorsed this skill
     const [existing] = await db
       .select()
@@ -468,9 +468,9 @@ export class ReputationService {
 
   // ===== STAKING =====
 
-  async createStake(data: InsertStakeSchema & { userId: number }): Promise<void> {
+  async createStake(data: typeof insertStakeSchema._type & { userId: number }): Promise<void> {
     const score = await this.getOrCreateScore(data.userId);
-    const availableReputation = parseFloat(score.totalScore);
+    const availableReputation = parseFloat(score.totalScore || "100.00");
     const stakeAmount = parseFloat(data.amount);
 
     if (stakeAmount > availableReputation * 0.2) {
@@ -548,7 +548,7 @@ export class ReputationService {
 
   // ===== GOVERNANCE =====
 
-  async createGovernanceProposal(data: InsertGovernanceProposalSchema & { proposerUserId: number }): Promise<void> {
+  async createGovernanceProposal(data: typeof insertGovernanceProposalSchema._type & { proposerUserId: number }): Promise<void> {
     const proposerScore = await this.getOrCreateScore(data.proposerUserId);
     
     // Require minimum reputation to create proposals
@@ -576,7 +576,7 @@ export class ReputationService {
 
     // Calculate vote weight based on reputation
     const score = await this.getOrCreateScore(userId);
-    const weight = Math.sqrt(parseFloat(score.totalScore)); // Square root for diminishing returns
+    const weight = Math.sqrt(parseFloat(score.totalScore || "100.00")); // Square root for diminishing returns
 
     await db.insert(governanceVotes).values({
       proposalId,
@@ -630,12 +630,12 @@ export class ReputationService {
     
     // Factors for trust score
     const factors = {
-      successRate: score.totalTransactions > 0 
-        ? score.successfulMatches / score.totalTransactions 
+      successRate: (score.totalTransactions || 0) > 0 
+        ? (score.successfulMatches || 0) / (score.totalTransactions || 1) 
         : 0.5,
-      verificationLevel: score.verificationLevel / 5,
+      verificationLevel: (score.verificationLevel || 0) / 5,
       endorsementScore: await this.getEndorsementScore(userId),
-      reputationNormalized: Math.min(1, parseFloat(score.totalScore) / 5000),
+      reputationNormalized: Math.min(1, parseFloat(score.totalScore || "100.00") / 5000),
       penaltyFactor: await this.getPenaltyFactor(userId),
     };
 

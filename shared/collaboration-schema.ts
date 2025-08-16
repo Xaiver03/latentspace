@@ -39,7 +39,7 @@ export const collaborationWorkspaces = pgTable("collaboration_workspaces", {
 }));
 
 // Tasks within workspaces
-export const workspaceTasks = pgTable("workspace_tasks", {
+export const workspaceTasks: any = pgTable("workspace_tasks", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").references(() => collaborationWorkspaces.id, { onDelete: "cascade" }).notNull(),
   
@@ -109,7 +109,7 @@ export const taskComments = pgTable("task_comments", {
 }));
 
 // Shared documents in workspace
-export const workspaceDocuments = pgTable("workspace_documents", {
+export const workspaceDocuments: any = pgTable("workspace_documents", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").references(() => collaborationWorkspaces.id, { onDelete: "cascade" }).notNull(),
   
@@ -150,7 +150,7 @@ export const workspaceDocuments = pgTable("workspace_documents", {
 }));
 
 // Document comments and feedback
-export const documentComments = pgTable("document_comments", {
+export const documentComments: any = pgTable("document_comments", {
   id: serial("id").primaryKey(),
   documentId: integer("document_id").references(() => workspaceDocuments.id, { onDelete: "cascade" }).notNull(),
   authorId: integer("author_id").references(() => users.id).notNull(),

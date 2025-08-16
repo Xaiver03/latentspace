@@ -1,0 +1,21 @@
+# ================================
+# Grafana数据源配置 - Prometheus
+# ================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    basicAuth: false
+    jsonData:
+      httpMethod: POST
+      timeInterval: "15s"
+      queryTimeout: "60s"
+      httpHeaderName1: 'X-Grafana-User'
+    secureJsonData:
+      httpHeaderValue1: 'admin'

@@ -25,6 +25,15 @@ import intelligentSearchRoutes from "./routes/intelligent-search-routes";
 import collaborationRoutes from "./routes/collaboration-routes";
 import aiMarketplaceRoutes from "./routes/ai-marketplace-routes";
 import reputationRoutes from "./routes/reputation-routes";
+import eventsRoutes from "./routes/events-routes";
+import matchingRoutes from "./routes/matching-routes";
+import tagsRoutes from "./routes/tags-routes";
+import iceBreakingQuestionsRoutes from "./routes/ice-breaking-questions-routes";
+import aiAdminRoutes from "./routes/ai-admin-routes";
+import interviewRoutes from "./routes/interview-routes";
+import adminInterviewRoutes from "./routes/admin-interview-routes";
+import abTestingRoutes from "./routes/ab-testing-routes";
+import performanceRoutes from "./routes/performance-routes";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -41,296 +50,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Events routes with improved error handling, pagination and caching
-  app.get("/api/events", 
-    cache({ ttl: 60, namespace: "events" }), // Cache for 1 minute
-    validate({ query: commonSchemas.pagination.merge(commonSchemas.search) }),
-    asyncHandler(async (req, res) => {
-      const { page, limit, sort, order, q: search, category } = req.query as any;
-      
-      const filters = { search, category };
-      const pagination = { page, limit, sort, order };
-      
-      const result = await eventsService.getEvents(filters, pagination);
-      res.json(result);
-    })
-  );
-
-  app.get("/api/events/:id",
-    validate({ params: commonSchemas.id }),
-    asyncHandler(async (req, res) => {
-      const { id } = req.params as any;
-      const event = await eventsService.getEvent(id);
-      res.json(event);
-    })
-  );
-
-  app.post("/api/events",
-    createResourceRateLimit,
-    requireAuth,
-    validate({ body: insertEventSchema.omit({ createdBy: true }) }),
-    invalidateCache(["events:*"], "events"), // Invalidate all events cache
-    asyncHandler(async (req, res) => {
-      const eventData = req.body as any;
-      const event = await eventsService.createEvent(eventData, req.user!.id);
-      res.status(201).json(event);
-    })
-  );
-
-  app.post("/api/events/:id/register",
-    requireAuth,
-    validate({ params: commonSchemas.id }),
-    asyncHandler(async (req, res) => {
-      const { id } = req.params as any;
-      const registration = await eventsService.registerForEvent(id, req.user!.id);
-      res.status(201).json(registration);
-    })
-  );
-
-  app.delete("/api/events/:id/register",
-    requireAuth,
-    validate({ params: commonSchemas.id }),
-    asyncHandler(async (req, res) => {
-      const { id } = req.params as any;
-      await eventsService.unregisterFromEvent(id, req.user!.id);
-      res.json({ message: "Unregistered successfully" });
-    })
-  );
-
-  // Event content management routes
-  app.get("/api/events/:id/contents",
-    validate({ params: commonSchemas.id }),
-    asyncHandler(async (req, res) => {
-      const { id } = req.params as any;
-      const contents = await eventsService.getEventContents(id);
-      res.json(contents);
-    })
-  );
-
-  app.get("/api/event-contents/:id",
-    validate({ params: commonSchemas.id }),
-    asyncHandler(async (req, res) => {
-      const { id } = req.params as any;
-      const content = await eventsService.getEventContent(id);
-      
-      // TODO: Increment view count - to be implemented in service
-      // await eventsService.incrementContentViewCount(id);
-      
-      res.json(content);
-    })
-  );
-
-  app.post("/api/events/:id/contents", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const eventId = parseInt(req.params.id);
-      const event = await storage.getEvent(eventId);
-      
-      if (!event) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      
-      // Only event creator or admin can upload content
-      if (event.createdBy !== req.user!.id && req.user!.role !== "admin") {
-        return res.status(403).json({ error: "Permission denied" });
-      }
-      
-      const contentData = insertEventContentSchema.parse({
-        ...req.body,
-        eventId: eventId,
-        uploadedBy: req.user!.id,
-      });
-      
-      const content = await storage.createEventContent(contentData);
-      res.status(201).json(content);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid content data", details: error.errors });
-      }
-      res.status(500).json({ error: "Failed to create content" });
-    }
-  });
-
-  app.delete("/api/event-contents/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const content = await storage.getEventContent(parseInt(req.params.id));
-      
-      if (!content) {
-        return res.status(404).json({ error: "Content not found" });
-      }
-      
-      // Only content uploader, event creator or admin can delete
-      const event = await storage.getEvent(content.eventId);
-      if (!event) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      
-      if (content.uploadedBy !== req.user!.id && 
-          event.createdBy !== req.user!.id && 
-          req.user!.role !== "admin") {
-        return res.status(403).json({ error: "Permission denied" });
-      }
-      
-      const success = await storage.deleteEventContent(content.id);
-      if (success) {
-        res.json({ message: "Content deleted successfully" });
-      } else {
-        res.status(500).json({ error: "Failed to delete content" });
-      }
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete content" });
-    }
-  });
-
-  // Event feedback routes
-  app.get("/api/events/:id/feedback", async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.id);
-      const feedback = await storage.getEventFeedback(eventId);
-      const avgRating = await storage.getEventAverageRating(eventId);
-      
-      res.json({ 
-        feedback, 
-        averageRating: avgRating,
-        totalReviews: feedback.length 
-      });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch feedback" });
-    }
-  });
-
-  app.post("/api/events/:id/feedback", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const eventId = parseInt(req.params.id);
-      const event = await storage.getEvent(eventId);
-      
-      if (!event) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      
-      // Check if user attended the event
-      const registrations = await storage.getEventRegistrations(eventId);
-      const attended = registrations.some(r => r.userId === req.user!.id);
-      
-      if (!attended) {
-        return res.status(403).json({ error: "Only event attendees can leave feedback" });
-      }
-      
-      // Check if user already submitted feedback
-      const existing = await storage.getUserEventFeedback(eventId, req.user!.id);
-      if (existing) {
-        return res.status(400).json({ error: "You have already submitted feedback for this event" });
-      }
-      
-      const feedbackData = insertEventFeedbackSchema.parse({
-        ...req.body,
-        eventId: eventId,
-        userId: req.user!.id,
-      });
-      
-      const feedback = await storage.createEventFeedback(feedbackData);
-      res.status(201).json(feedback);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid feedback data", details: error.errors });
-      }
-      res.status(500).json({ error: "Failed to create feedback" });
-    }
-  });
-
-  // Event tags routes
-  app.get("/api/events/:id/tags", async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.id);
-      const tags = await storage.getEventTags(eventId);
-      res.json(tags);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch tags" });
-    }
-  });
-
-  app.post("/api/events/:id/tags", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const eventId = parseInt(req.params.id);
-      const event = await storage.getEvent(eventId);
-      
-      if (!event) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      
-      // Only event creator or admin can add tags
-      if (event.createdBy !== req.user!.id && req.user!.role !== "admin") {
-        return res.status(403).json({ error: "Permission denied" });
-      }
-      
-      const tagData = insertEventTagSchema.parse({
-        eventId: eventId,
-        tag: req.body.tag.toLowerCase().trim(),
-      });
-      
-      const tag = await storage.createEventTag(tagData);
-      res.status(201).json(tag);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid tag data", details: error.errors });
-      }
-      res.status(500).json({ error: "Failed to create tag" });
-    }
-  });
-
-  app.delete("/api/events/:id/tags/:tag", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const eventId = parseInt(req.params.id);
-      const event = await storage.getEvent(eventId);
-      
-      if (!event) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      
-      // Only event creator or admin can delete tags
-      if (event.createdBy !== req.user!.id && req.user!.role !== "admin") {
-        return res.status(403).json({ error: "Permission denied" });
-      }
-      
-      const success = await storage.deleteEventTag(eventId, req.params.tag);
-      if (success) {
-        res.json({ message: "Tag deleted successfully" });
-      } else {
-        res.status(404).json({ error: "Tag not found" });
-      }
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete tag" });
-    }
-  });
-
-  app.get("/api/tags/popular", async (req, res) => {
-    try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-      const tags = await storage.getPopularTags(limit);
-      res.json(tags);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch popular tags" });
-    }
-  });
+  // Note: Events routes have been modularized to server/routes/events-routes.ts
 
   // Agent products routes
   app.get("/api/agent-products", async (req, res) => {
@@ -447,19 +167,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Matches routes
-  app.get("/api/matches", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
-    try {
-      const matches = await storage.getUserMatches(req.user!.id);
-      res.json(matches);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch matches" });
-    }
-  });
+  // Note: Matches routes have been modularized to server/routes/matching-routes.ts
 
   // Get match recommendations
   app.get("/api/matches/recommendations", async (req, res) => {
@@ -814,6 +522,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Modular route mounting
+  app.use("/api/events", eventsRoutes);
+  app.use("/api/matches", matchingRoutes);
+  app.use("/api/tags", tagsRoutes);
+  app.use("/api/ice-breaking-questions", iceBreakingQuestionsRoutes);
+  
   // AI Matching routes
   app.use("/api/matching", aiMatchingRoutes);
 
@@ -828,6 +542,19 @@ export function registerRoutes(app: Express): Server {
 
   // Reputation routes
   app.use("/api/reputation", reputationRoutes);
+
+  // AI Admin routes
+  app.use("/api/admin/ai", aiAdminRoutes);
+
+  // Interview routes
+  app.use("/api/interviews", interviewRoutes);
+
+  // Admin Interview routes
+  app.use("/api/admin", adminInterviewRoutes);
+
+  // A/B Testing routes
+  app.use("/api/ab-testing", abTestingRoutes);
+  app.use("/api/performance", performanceRoutes);
 
   // Admin routes
   app.get("/api/admin/users", async (req, res) => {

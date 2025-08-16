@@ -26,6 +26,7 @@ export default function Navbar() {
     { href: "/platform/community", label: "内容社区" },
     { href: "/platform/matching", label: "创始人匹配" },
     { href: "/platform/ai-matching", label: "AI 智能匹配" },
+    { href: "/platform/tinder-matching", label: "智能匹配卡片" },
     { href: "/platform/workspace", label: "协作空间" },
     { href: "/platform/marketplace", label: "AI 工具市场" },
     { href: "/platform/reputation", label: "信誉系统" },
@@ -69,16 +70,36 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center space-x-4">
                 {user.role === "admin" && (
-                  <Link href="/platform/admin">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={isActive("/platform/admin") ? "text-primary-blue" : "text-gray-700"}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      管理
-                    </Button>
-                  </Link>
+                  <>
+                    <Link href="/platform/admin">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={isActive("/platform/admin") ? "text-primary-blue" : "text-gray-700"}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        管理
+                      </Button>
+                    </Link>
+                    <Link href="/platform/admin/interviews">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={isActive("/platform/admin/interviews") ? "text-primary-blue" : "text-gray-700"}
+                      >
+                        面试评估
+                      </Button>
+                    </Link>
+                    <Link href="/platform/admin/ab-testing">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={isActive("/platform/admin/ab-testing") ? "text-primary-blue" : "text-gray-700"}
+                      >
+                        A/B测试
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 
                 <DropdownMenu>
@@ -134,6 +155,9 @@ export default function Navbar() {
               size="sm"
               className="md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "关闭菜单" : "打开菜单"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -142,7 +166,12 @@ export default function Navbar() {
         
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
+          <div 
+            id="mobile-menu" 
+            className="md:hidden border-t border-gray-200 py-4"
+            role="navigation"
+            aria-label="移动端导航菜单"
+          >
             <div className="flex flex-col space-y-3">
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href}>

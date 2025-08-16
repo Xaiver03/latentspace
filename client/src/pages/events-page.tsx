@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -116,13 +116,16 @@ export default function EventsPage() {
     },
   });
 
-  const filteredEvents = events.filter(event => {
-    const matchesFilter = filter === "all" || event.category === filter;
-    const matchesSearch = searchTerm === "" || 
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const filteredEvents = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return events.filter(event => {
+      const matchesFilter = filter === "all" || event.category === filter;
+      const matchesSearch = searchTerm === "" || 
+        event.title.toLowerCase().includes(lowerSearchTerm) ||
+        event.description.toLowerCase().includes(lowerSearchTerm);
+      return matchesFilter && matchesSearch;
+    });
+  }, [events, filter, searchTerm]);
 
   const onSubmit = (data: EventForm) => {
     createEventMutation.mutate(data);

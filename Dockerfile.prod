@@ -1,0 +1,82 @@
+# ================================
+# 潜空间 (Latent Space) - 生产环境 Dockerfile
+# 基于Node.js 18 Alpine构建轻量级生产镜像
+# ================================
+
+# 构建阶段
+FROM node:18-alpine AS builder
+
+# 设置工作目录
+WORKDIR /app
+
+# 设置npm镜像加速
+RUN npm config set registry https://registry.npmmirror.com
+
+# 复制package files
+COPY package*.json ./
+COPY client/package*.json ./client/
+COPY server/package*.json ./server/
+
+# 安装所有依赖（包括开发依赖用于构建）
+RUN npm ci
+
+# 复制源代码
+COPY . .
+
+# 构建应用
+ENV NODE_ENV=production
+RUN npm run build
+
+# 生产阶段
+FROM node:18-alpine AS production
+
+# 安装系统依赖
+RUN apk add --no-cache \
+    curl \
+    ca-certificates \
+    tzdata \
+    && rm -rf /var/cache/apk/*
+
+# 设置时区
+ENV TZ=Asia/Shanghai
+
+# 创建非root用户
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# 设置工作目录
+WORKDIR /app
+
+# 设置npm镜像加速
+RUN npm config set registry https://registry.npmmirror.com
+
+# 复制package files
+COPY package*.json ./
+
+# 只安装生产依赖
+RUN npm ci --only=production && npm cache clean --force
+
+# 复制构建好的应用
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/shared ./shared
+
+# 创建日志目录
+RUN mkdir -p /app/logs && chown -R nextjs:nodejs /app/logs
+
+# 创建健康检查脚本
+RUN echo '#!/bin/sh' > /app/healthcheck.sh && \
+    echo 'curl -f http://localhost:5001/health || exit 1' >> /app/healthcheck.sh && \
+    chmod +x /app/healthcheck.sh
+
+# 切换到非root用户
+USER nextjs
+
+# 暴露端口
+EXPOSE 5001
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /app/healthcheck.sh
+
+# 启动命令
+CMD ["node", "dist/index.js"]

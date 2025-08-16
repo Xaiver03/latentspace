@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { cacheService } from "../services/cache-service";
 import { cacheConfig } from "../config/cache-config";
+import NodeCache from 'node-cache';
 
 interface CacheMiddlewareOptions {
   ttl?: number;
@@ -216,4 +217,65 @@ export function conditionalCache(
     
     next();
   };
+}
+
+// Enhanced memory cache instances for performance optimization
+const performanceCache = new NodeCache({ 
+  stdTTL: 300,     // 5 minutes default
+  checkperiod: 60, // Check for expired keys every 60 seconds
+  useClones: false, // Better performance
+  maxKeys: 1000    // Limit memory usage
+});
+
+/**
+ * High-performance cache for frequently accessed data
+ */
+export function performanceCache_middleware(ttl: number = 300) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (req.method !== 'GET') {
+      return next();
+    }
+
+    const cacheKey = `perf:${req.originalUrl}`;
+    const cached = performanceCache.get(cacheKey);
+    
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      return res.json(cached);
+    }
+
+    const originalJson = res.json;
+    res.json = function(data: any) {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        performanceCache.set(cacheKey, data, ttl);
+        res.set('X-Cache', 'MISS');
+      }
+      return originalJson.call(this, data);
+    };
+
+    next();
+  };
+}
+
+/**
+ * Cache manager for performance monitoring
+ */
+export class CacheManager {
+  static getMemoryCacheStats() {
+    return {
+      performance: performanceCache.getStats(),
+      keys: performanceCache.keys().length
+    };
+  }
+
+  static clearMemoryCache() {
+    performanceCache.flushAll();
+  }
+
+  static invalidatePattern(pattern: string) {
+    const keys = performanceCache.keys();
+    const matching = keys.filter(key => key.includes(pattern));
+    matching.forEach(key => performanceCache.del(key));
+    return matching.length;
+  }
 }

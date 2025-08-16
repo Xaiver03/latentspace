@@ -234,7 +234,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     return () => {
       disconnect();
     };
-  }, [user, connect, disconnect]);
+  }, [user]); // Remove connect/disconnect from deps to prevent unnecessary reconnections
 
   const contextValue: WebSocketContextType = {
     isConnected,

@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +20,8 @@ export default function HomePage() {
     queryKey: ["/api/agent-products"],
   });
 
-  const recentEvents = events.slice(0, 3);
-  const featuredProducts = agentProducts.slice(0, 3);
+  const recentEvents = useMemo(() => events.slice(0, 3), [events]);
+  const featuredProducts = useMemo(() => agentProducts.slice(0, 3), [agentProducts]);
 
   return (
     <div className="min-h-screen bg-gray-50">

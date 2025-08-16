@@ -33,20 +33,22 @@ const searchSchema = z.object({
 // Advanced search endpoint
 router.post("/search", requireAuth, async (req, res) => {
   try {
-    const searchRequest = searchSchema.parse(req.body);
+    const parsedRequest = searchSchema.parse(req.body);
     
-    // Convert date strings to Date objects
-    if (searchRequest.filters?.dateRange) {
-      searchRequest.filters.dateRange = {
-        start: new Date(searchRequest.filters.dateRange.start),
-        end: new Date(searchRequest.filters.dateRange.end),
-      };
-    }
-
-    const results = await intelligentSearchService.search({
-      ...searchRequest,
+    // Create properly typed search request with date conversion
+    const searchRequest = {
+      ...parsedRequest,
       userId: req.user!.id,
-    });
+      filters: parsedRequest.filters ? {
+        ...parsedRequest.filters,
+        dateRange: parsedRequest.filters.dateRange ? {
+          start: new Date(parsedRequest.filters.dateRange.start),
+          end: new Date(parsedRequest.filters.dateRange.end),
+        } : undefined
+      } : undefined
+    };
+
+    const results = await intelligentSearchService.search(searchRequest);
 
     res.json(results);
   } catch (error) {

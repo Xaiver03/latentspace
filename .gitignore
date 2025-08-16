@@ -1,6 +1,180 @@
-node_modules
-dist
-.DS_Store
-server/public
-vite.config.ts.*
+# ================================
+# 潜空间 (Latent Space) - GitIgnore Configuration
+# ================================
+
+# ================================
+# Dependencies & Package Management
+# ================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ================================
+# Build Output & Distribution
+# ================================
+dist/
+build/
+out/
+*.tgz
 *.tar.gz
+
+# ================================
+# Environment & Configuration
+# ================================
+# Environment variables (never commit sensitive data)
+.env
+.env.local
+.env.production
+.env.staging
+.env.test
+
+# ================================
+# Security & Sensitive Files
+# ================================
+# HTTP cookies and session data
+cookies.txt
+*.cookie
+*.session
+
+# SSH keys and certificates
+*.pem
+*.key
+*.cert
+*.csr
+id_rsa
+id_rsa.pub
+
+# ================================
+# Development & Debugging
+# ================================
+# Development logs
+*.log
+dev.log
+debug.log
+error.log
+
+# Debug directories
+.vscode-test/
+.nyc_output
+
+# ================================
+# Testing & Coverage
+# ================================
+coverage/
+*.lcov
+.nyc_output/
+junit.xml
+test-results/
+playwright-report/
+test-results.xml
+
+# ================================
+# Cache & Temporary Files
+# ================================
+# Dependency cache
+.npm/
+.yarn/
+.pnpm/
+
+# Runtime cache
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
+
+# Temporary files
+*.tmp
+*.temp
+.temp/
+.tmp/
+
+# ================================
+# IDE & Editor Files
+# ================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ================================
+# Operating System Files
+# ================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ================================
+# Server & Database
+# ================================
+# Local database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Server public files (generated)
+server/public/
+public/uploads/
+
+# ================================
+# Build Tools & Configuration
+# ================================
+# Vite
+vite.config.ts.*
+.vite/
+
+# ESLint
+.eslintcache
+
+# TypeScript
+*.tsbuildinfo
+
+# ================================
+# Deployment & Production
+# ================================
+# PM2
+.pm2/
+
+# Docker
+.dockerignore
+
+# Kubernetes
+*.yaml.local
