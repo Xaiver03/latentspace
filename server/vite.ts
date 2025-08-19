@@ -41,6 +41,23 @@ export async function setupVite(app: Express, server: Server) {
   });
 
   app.use(vite.middlewares);
+  
+  // Serve landing page for root path
+  app.get("/", async (req, res, next) => {
+    try {
+      const landingTemplate = path.resolve(
+        import.meta.dirname,
+        "..",
+        "landing.html",
+      );
+      let template = await fs.promises.readFile(landingTemplate, "utf-8");
+      res.status(200).set({ "Content-Type": "text/html" }).end(template);
+    } catch (e) {
+      next(e);
+    }
+  });
+  
+  // Serve React app for all other routes
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
 
@@ -77,8 +94,18 @@ export function serveStatic(app: Express) {
   }
 
   app.use(express.static(distPath));
+  
+  // Serve landing page for root path
+  app.get("/", (_req, res) => {
+    const landingPath = path.resolve(import.meta.dirname, "..", "landing.html");
+    if (fs.existsSync(landingPath)) {
+      res.sendFile(landingPath);
+    } else {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    }
+  });
 
-  // fall through to index.html if the file doesn't exist
+  // fall through to index.html for all other routes
   app.use("*", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });

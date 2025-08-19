@@ -192,16 +192,20 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   // Referrer policy
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   
-  // Content Security Policy
-  res.setHeader("Content-Security-Policy", 
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: https:; " +
-    "font-src 'self' data:; " +
-    "connect-src 'self'; " +
-    "frame-ancestors 'none';"
-  );
+  // Content Security Policy - Only enable in production to avoid development issues
+  if (process.env.NODE_ENV === "production") {
+    // Strict policy for production
+    res.setHeader("Content-Security-Policy", 
+      "default-src 'self'; " +
+      "script-src 'self'; " +
+      "style-src 'self'; " +
+      "img-src 'self' data: https:; " +
+      "font-src 'self' data:; " +
+      "connect-src 'self'; " +
+      "frame-ancestors 'none';"
+    );
+  }
+  // Development环境不设置CSP，避免Vite开发服务器的兼容性问题
   
   // HSTS (only in production with HTTPS)
   if (process.env.NODE_ENV === "production") {
