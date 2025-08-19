@@ -68,6 +68,69 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Magazine Style Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  /* Latent-inspired specific styles */
+  .latent-header {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+  
+  .latent-article {
+    font-size: 18px;
+    line-height: 1.75;
+    color: #111;
+  }
+  
+  .latent-meta {
+    font-size: 14px;
+    color: #666;
+    letter-spacing: 0.01em;
+  }
+  
+  .latent-engagement {
+    transition: all 0.15s ease;
+  }
+  
+  .latent-engagement:hover {
+    transform: translateY(-1px);
+  }
+  
+  .latent-card-hover {
+    transition: all 0.2s ease;
+  }
+  
+  .latent-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl font-bold;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl font-bold;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+  
+  h4 {
+    @apply text-lg font-semibold;
+  }
+  
+  /* Body text uses system fonts for better readability */
+  p, .body-text {
+    @apply text-gray-600 leading-relaxed;
+  }
 }
 
 @layer utilities {
@@ -126,5 +189,89 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  
+  /* Smooth transitions and animations */
+  .transition-all-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+  }
+  
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  /* Slide animations */
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .animate-slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+  }
+  
+  /* Skeleton loading animation */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .skeleton {
+    @apply bg-gray-200 rounded;
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 0%,
+      #e0e0e0 50%,
+      #f0f0f0 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
 }
