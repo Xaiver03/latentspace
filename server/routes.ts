@@ -34,6 +34,10 @@ import interviewRoutes from "./routes/interview-routes";
 import adminInterviewRoutes from "./routes/admin-interview-routes";
 import abTestingRoutes from "./routes/ab-testing-routes";
 import performanceRoutes from "./routes/performance-routes";
+import successStoriesRoutes from "./routes/success-stories-routes";
+import eventMatchingRoutes from "./routes/event-matching-routes";
+import logsRoutes from "./routes/logs-routes";
+import cmsAdminRoutes from "./routes/cms-admin-routes";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -44,9 +48,9 @@ export function registerRoutes(app: Express): Server {
       const landingPath = path.resolve(import.meta.dirname, "..", "landing.html");
       const landingContent = await fs.promises.readFile(landingPath, "utf-8");
       res.setHeader("Content-Type", "text/html");
-      res.send(landingContent);
+      return res.send(landingContent);
     } catch (error) {
-      res.status(500).send("Landing page not found");
+      return res.status(500).send("Landing page not found");
     }
   });
 
@@ -56,9 +60,9 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/agent-products", async (req, res) => {
     try {
       const products = await storage.getAgentProducts();
-      res.json(products);
+      return res.json(products);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch agent products" });
+      return res.status(500).json({ error: "Failed to fetch agent products" });
     }
   });
 
@@ -73,12 +77,12 @@ export function registerRoutes(app: Express): Server {
         creatorId: req.user!.id,
       });
       const product = await storage.createAgentProduct(productData);
-      res.status(201).json(product);
+      return res.status(201).json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Invalid product data", details: error.errors });
       }
-      res.status(500).json({ error: "Failed to create agent product" });
+      return res.status(500).json({ error: "Failed to create agent product" });
     }
   });
 
@@ -95,9 +99,9 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const applications = await storage.getCofounderApplications();
-      res.json(applications);
+      return res.json(applications);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch applications" });
+      return res.status(500).json({ error: "Failed to fetch applications" });
     }
   });
 
@@ -108,9 +112,9 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const application = await storage.getUserCofounderApplication(req.user!.id);
-      res.json(application || null);
+      return res.json(application || null);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch application" });
+      return res.status(500).json({ error: "Failed to fetch application" });
     }
   });
 
@@ -131,12 +135,12 @@ export function registerRoutes(app: Express): Server {
         userId: req.user!.id,
       });
       const application = await storage.createCofounderApplication(applicationData);
-      res.status(201).json(application);
+      return res.status(201).json(application);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Invalid application data", details: error.errors });
       }
-      res.status(500).json({ error: "Failed to create application" });
+      return res.status(500).json({ error: "Failed to create application" });
     }
   });
 
@@ -161,9 +165,9 @@ export function registerRoutes(app: Express): Server {
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
       }
-      res.json(application);
+      return res.json(application);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update application" });
+      return res.status(500).json({ error: "Failed to update application" });
     }
   });
 
@@ -178,7 +182,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       const recommendations = await matchingEngine.generateRecommendations(req.user!.id, limit);
-      res.json(recommendations);
+      return res.json(recommendations);
     } catch (error: any) {
       console.error("Match recommendations error:", error);
       if (error.message?.includes("not found or not approved")) {
@@ -186,7 +190,7 @@ export function registerRoutes(app: Express): Server {
           error: "请先完成Co-founder申请并等待审核通过" 
         });
       }
-      res.status(500).json({ error: "Failed to generate recommendations" });
+      return res.status(500).json({ error: "Failed to generate recommendations" });
     }
   });
 
@@ -205,13 +209,13 @@ export function registerRoutes(app: Express): Server {
       // Create match record
       await matchingEngine.createMatch(req.user!.id, targetUserId);
       
-      res.json({ message: "Interest expressed successfully" });
+      return res.json({ message: "Interest expressed successfully" });
     } catch (error: any) {
       console.error("Express interest error:", error);
       if (error.message?.includes("duplicate")) {
         return res.status(409).json({ error: "已经表达过兴趣" });
       }
-      res.status(500).json({ error: "Failed to express interest" });
+      return res.status(500).json({ error: "Failed to express interest" });
     }
   });
 
@@ -219,10 +223,10 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/matches/ice-breakers", async (req, res) => {
     try {
       const questions = matchingEngine.getBreakingIceQuestions();
-      res.json({ questions });
+      return res.json({ questions });
     } catch (error) {
       console.error("Ice breakers error:", error);
-      res.status(500).json({ error: "Failed to get ice breaker questions" });
+      return res.status(500).json({ error: "Failed to get ice breaker questions" });
     }
   });
 
@@ -257,10 +261,10 @@ export function registerRoutes(app: Express): Server {
         content: formattedMessage
       });
 
-      res.json({ message: "Conversation started successfully", messageId: message.id });
+      return res.json({ message: "Conversation started successfully", messageId: message.id });
     } catch (error) {
       console.error("Start conversation error:", error);
-      res.status(500).json({ error: "Failed to start conversation" });
+      return res.status(500).json({ error: "Failed to start conversation" });
     }
   });
 
@@ -272,10 +276,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       const matches = await enhancedMatchingEngine.getEnhancedMatches(req.user!.id, limit);
-      res.json(matches);
+      return res.json(matches);
     } catch (error) {
       console.error("Enhanced matching error:", error);
-      res.status(500).json({ error: "Failed to get enhanced matches" });
+      return res.status(500).json({ error: "Failed to get enhanced matches" });
     }
   });
 
@@ -286,10 +290,10 @@ export function registerRoutes(app: Express): Server {
     }
     try {
       const recommendation = await enhancedMatchingEngine.getDailyRecommendation(req.user!.id);
-      res.json({ recommendation });
+      return res.json({ recommendation });
     } catch (error) {
       console.error("Daily recommendation error:", error);
-      res.status(500).json({ error: "Failed to get daily recommendation" });
+      return res.status(500).json({ error: "Failed to get daily recommendation" });
     }
   });
 
@@ -313,10 +317,10 @@ export function registerRoutes(app: Express): Server {
         metadata: metadata || null
       });
       
-      res.json({ message: "Interaction recorded" });
+      return res.json({ message: "Interaction recorded" });
     } catch (error) {
       console.error("Record interaction error:", error);
-      res.status(500).json({ error: "Failed to record interaction" });
+      return res.status(500).json({ error: "Failed to record interaction" });
     }
   });
 
@@ -331,10 +335,10 @@ export function registerRoutes(app: Express): Server {
         await storage.incrementQuestionUsage(question.id);
       }
       
-      res.json({ questions });
+      return res.json({ questions });
     } catch (error) {
       console.error("Ice breaking questions error:", error);
-      res.status(500).json({ error: "Failed to get ice breaking questions" });
+      return res.status(500).json({ error: "Failed to get ice breaking questions" });
     }
   });
 
@@ -368,10 +372,10 @@ export function registerRoutes(app: Express): Server {
         notMatchReasons: notMatchReasons || null
       });
       
-      res.json(feedback);
+      return res.json(feedback);
     } catch (error) {
       console.error("Match feedback error:", error);
-      res.status(500).json({ error: "Failed to submit feedback" });
+      return res.status(500).json({ error: "Failed to submit feedback" });
     }
   });
 
@@ -406,10 +410,10 @@ export function registerRoutes(app: Express): Server {
         sharedDocs: []
       });
       
-      res.json(space);
+      return res.json(space);
     } catch (error) {
       console.error("Create collaboration space error:", error);
-      res.status(500).json({ error: "Failed to create collaboration space" });
+      return res.status(500).json({ error: "Failed to create collaboration space" });
     }
   });
 
@@ -420,10 +424,10 @@ export function registerRoutes(app: Express): Server {
     }
     try {
       const spaces = await storage.getActiveCollaborationSpaces(req.user!.id);
-      res.json(spaces);
+      return res.json(spaces);
     } catch (error) {
       console.error("Get collaboration spaces error:", error);
-      res.status(500).json({ error: "Failed to get collaboration spaces" });
+      return res.status(500).json({ error: "Failed to get collaboration spaces" });
     }
   });
 
@@ -453,10 +457,10 @@ export function registerRoutes(app: Express): Server {
       }
       
       const updatedSpace = await storage.updateCollaborationSpace(spaceId, updates);
-      res.json(updatedSpace);
+      return res.json(updatedSpace);
     } catch (error) {
       console.error("Update collaboration space error:", error);
-      res.status(500).json({ error: "Failed to update collaboration space" });
+      return res.status(500).json({ error: "Failed to update collaboration space" });
     }
   });
 
@@ -468,10 +472,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const conversations = await storage.getUserConversations(req.user!.id);
-      res.json(conversations);
+      return res.json(conversations);
     } catch (error) {
       console.error("Get conversations error:", error);
-      res.status(500).json({ error: "Failed to fetch conversations" });
+      return res.status(500).json({ error: "Failed to fetch conversations" });
     }
   });
 
@@ -482,9 +486,9 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const messages = await storage.getUserMessages(req.user!.id);
-      res.json(messages);
+      return res.json(messages);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch messages" });
+      return res.status(500).json({ error: "Failed to fetch messages" });
     }
   });
 
@@ -496,9 +500,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const otherUserId = parseInt(req.params.userId);
       const messages = await storage.getConversation(req.user!.id, otherUserId);
-      res.json(messages);
+      return res.json(messages);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch conversation" });
+      return res.status(500).json({ error: "Failed to fetch conversation" });
     }
   });
 
@@ -513,12 +517,12 @@ export function registerRoutes(app: Express): Server {
         senderId: req.user!.id,
       });
       const message = await storage.createMessage(messageData);
-      res.status(201).json(message);
+      return res.status(201).json(message);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Invalid message data", details: error.errors });
       }
-      res.status(500).json({ error: "Failed to send message" });
+      return res.status(500).json({ error: "Failed to send message" });
     }
   });
 
@@ -545,6 +549,9 @@ export function registerRoutes(app: Express): Server {
 
   // AI Admin routes
   app.use("/api/admin/ai", aiAdminRoutes);
+  
+  // CMS Admin routes
+  app.use("/api/admin/cms", cmsAdminRoutes);
 
   // Interview routes
   app.use("/api/interviews", interviewRoutes);
@@ -555,6 +562,15 @@ export function registerRoutes(app: Express): Server {
   // A/B Testing routes
   app.use("/api/ab-testing", abTestingRoutes);
   app.use("/api/performance", performanceRoutes);
+  
+  // Success Stories routes
+  app.use("/api/success-stories", successStoriesRoutes);
+  
+  // Event Matching routes
+  app.use("/api/event-matching", eventMatchingRoutes);
+  
+  // Logs routes (admin only)
+  app.use("/api/logs", logsRoutes);
 
   // Admin routes
   app.get("/api/admin/users", async (req, res) => {
@@ -564,9 +580,9 @@ export function registerRoutes(app: Express): Server {
 
     try {
       // This would need a new storage method to get all users
-      res.json({ message: "Admin users endpoint - to be implemented" });
+      return res.json({ message: "Admin users endpoint - to be implemented" });
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch users" });
+      return res.status(500).json({ error: "Failed to fetch users" });
     }
   });
 
@@ -584,10 +600,10 @@ export function registerRoutes(app: Express): Server {
 
       // Remove sensitive data
       const { password, ...userProfile } = user;
-      res.json(userProfile);
+      return res.json(userProfile);
     } catch (error) {
       console.error("Get profile error:", error);
-      res.status(500).json({ error: "Failed to fetch profile" });
+      return res.status(500).json({ error: "Failed to fetch profile" });
     }
   });
 
@@ -618,10 +634,10 @@ export function registerRoutes(app: Express): Server {
 
       // Remove sensitive data
       const { password, ...userProfile } = updatedUser;
-      res.json(userProfile);
+      return res.json(userProfile);
     } catch (error) {
       console.error("Update profile error:", error);
-      res.status(500).json({ error: "Failed to update profile" });
+      return res.status(500).json({ error: "Failed to update profile" });
     }
   });
 
@@ -633,13 +649,13 @@ export function registerRoutes(app: Express): Server {
     try {
       // For now, return a placeholder response
       // In a real implementation, you would handle file upload to a service like Cloudinary
-      res.json({ 
+      return res.json({ 
         avatarUrl: "https://via.placeholder.com/150",
         message: "Avatar upload feature to be implemented with cloud storage service" 
       });
     } catch (error) {
       console.error("Avatar upload error:", error);
-      res.status(500).json({ error: "Failed to upload avatar" });
+      return res.status(500).json({ error: "Failed to upload avatar" });
     }
   });
 
@@ -652,10 +668,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const timeRange = req.query.timeRange as 'week' | 'month' | 'quarter' || 'month';
       const metrics = await matchingAnalytics.getSystemMetrics(timeRange);
-      res.json(metrics);
+      return res.json(metrics);
     } catch (error) {
       console.error("Matching metrics error:", error);
-      res.status(500).json({ error: "Failed to fetch matching metrics" });
+      return res.status(500).json({ error: "Failed to fetch matching metrics" });
     }
   });
 
@@ -672,10 +688,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const insights = await matchingAnalytics.getUserInsights(requestedUserId);
-      res.json(insights);
+      return res.json(insights);
     } catch (error) {
       console.error("User insights error:", error);
-      res.status(500).json({ error: "Failed to fetch user insights" });
+      return res.status(500).json({ error: "Failed to fetch user insights" });
     }
   });
 
@@ -686,10 +702,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const recommendations = await matchingAnalytics.getAlgorithmRecommendations();
-      res.json(recommendations);
+      return res.json(recommendations);
     } catch (error) {
       console.error("Algorithm recommendations error:", error);
-      res.status(500).json({ error: "Failed to fetch algorithm recommendations" });
+      return res.status(500).json({ error: "Failed to fetch algorithm recommendations" });
     }
   });
 
@@ -702,10 +718,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const feed = await contentRecommendation.getPersonalizedFeed(req.user!.id, limit);
-      res.json(feed);
+      return res.json(feed);
     } catch (error) {
       console.error("Content feed error:", error);
-      res.status(500).json({ error: "Failed to fetch content feed" });
+      return res.status(500).json({ error: "Failed to fetch content feed" });
     }
   });
 
@@ -716,10 +732,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const analytics = await contentRecommendation.getContentAnalytics();
-      res.json(analytics);
+      return res.json(analytics);
     } catch (error) {
       console.error("Content analytics error:", error);
-      res.status(500).json({ error: "Failed to fetch content analytics" });
+      return res.status(500).json({ error: "Failed to fetch content analytics" });
     }
   });
 
@@ -743,10 +759,10 @@ export function registerRoutes(app: Express): Server {
         metadata
       );
 
-      res.json({ success: true });
+      return res.json({ success: true });
     } catch (error) {
       console.error("Track interaction error:", error);
-      res.status(500).json({ error: "Failed to track interaction" });
+      return res.status(500).json({ error: "Failed to track interaction" });
     }
   });
 
@@ -759,10 +775,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
       const notifications = await notificationService.getNotificationHistory(req.user!.id, limit);
-      res.json(notifications);
+      return res.json(notifications);
     } catch (error) {
       console.error("Get notifications error:", error);
-      res.status(500).json({ error: "Failed to fetch notifications" });
+      return res.status(500).json({ error: "Failed to fetch notifications" });
     }
   });
 
@@ -773,10 +789,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const settings = await notificationService.getUserSettings(req.user!.id);
-      res.json(settings);
+      return res.json(settings);
     } catch (error) {
       console.error("Get notification settings error:", error);
-      res.status(500).json({ error: "Failed to fetch notification settings" });
+      return res.status(500).json({ error: "Failed to fetch notification settings" });
     }
   });
 
@@ -787,10 +803,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       await notificationService.updateUserSettings(req.user!.id, req.body);
-      res.json({ success: true });
+      return res.json({ success: true });
     } catch (error) {
       console.error("Update notification settings error:", error);
-      res.status(500).json({ error: "Failed to update notification settings" });
+      return res.status(500).json({ error: "Failed to update notification settings" });
     }
   });
 
@@ -806,10 +822,10 @@ export function registerRoutes(app: Express): Server {
       }
 
       await notificationService.markAsRead(req.user!.id, notificationIds);
-      res.json({ success: true });
+      return res.json({ success: true });
     } catch (error) {
       console.error("Mark notifications as read error:", error);
-      res.status(500).json({ error: "Failed to mark notifications as read" });
+      return res.status(500).json({ error: "Failed to mark notifications as read" });
     }
   });
 
@@ -828,10 +844,10 @@ export function registerRoutes(app: Express): Server {
         targetUserId: req.user!.id,
       });
 
-      res.json({ success: true, message: "Test notification sent" });
+      return res.json({ success: true, message: "Test notification sent" });
     } catch (error) {
       console.error("Send test notification error:", error);
-      res.status(500).json({ error: "Failed to send test notification" });
+      return res.status(500).json({ error: "Failed to send test notification" });
     }
   });
 
@@ -849,10 +865,10 @@ export function registerRoutes(app: Express): Server {
       }
 
       await notificationService.sendSystemAnnouncement(title, message, priority, targetRole);
-      res.json({ success: true });
+      return res.json({ success: true });
     } catch (error) {
       console.error("Send system announcement error:", error);
-      res.status(500).json({ error: "Failed to send system announcement" });
+      return res.status(500).json({ error: "Failed to send system announcement" });
     }
   });
 
@@ -863,10 +879,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       await notificationService.scheduleEventReminders();
-      res.json({ success: true, message: "Event reminders scheduled" });
+      return res.json({ success: true, message: "Event reminders scheduled" });
     } catch (error) {
       console.error("Schedule event reminders error:", error);
-      res.status(500).json({ error: "Failed to schedule event reminders" });
+      return res.status(500).json({ error: "Failed to schedule event reminders" });
     }
   });
 
@@ -879,10 +895,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const timeRange = req.query.timeRange as 'week' | 'month' | 'quarter' || 'month';
       const stats = await adminService.getPlatformStats(timeRange);
-      res.json(stats);
+      return res.json(stats);
     } catch (error) {
       console.error("Get admin stats error:", error);
-      res.status(500).json({ error: "Failed to fetch platform statistics" });
+      return res.status(500).json({ error: "Failed to fetch platform statistics" });
     }
   });
 
@@ -901,10 +917,10 @@ export function registerRoutes(app: Express): Server {
       };
 
       const result = await adminService.getUsers(page, limit, filter);
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       console.error("Get admin users error:", error);
-      res.status(500).json({ error: "Failed to fetch users" });
+      return res.status(500).json({ error: "Failed to fetch users" });
     }
   });
 
@@ -921,10 +937,10 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "User not found" });
       }
 
-      res.json(userDetails);
+      return res.json(userDetails);
     } catch (error) {
       console.error("Get user details error:", error);
-      res.status(500).json({ error: "Failed to fetch user details" });
+      return res.status(500).json({ error: "Failed to fetch user details" });
     }
   });
 
@@ -936,10 +952,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const type = req.query.type as 'event' | 'product' | 'application';
       const content = await adminService.getContentForModeration(type);
-      res.json(content);
+      return res.json(content);
     } catch (error) {
       console.error("Get content for moderation error:", error);
-      res.status(500).json({ error: "Failed to fetch content for moderation" });
+      return res.status(500).json({ error: "Failed to fetch content for moderation" });
     }
   });
 
@@ -957,10 +973,10 @@ export function registerRoutes(app: Express): Server {
       }
 
       await adminService.moderateApplication(applicationId, action, req.user!.id, notes);
-      res.json({ success: true, message: `Application ${action}d successfully` });
+      return res.json({ success: true, message: `Application ${action}d successfully` });
     } catch (error) {
       console.error("Moderate application error:", error);
-      res.status(500).json({ error: "Failed to moderate application" });
+      return res.status(500).json({ error: "Failed to moderate application" });
     }
   });
 
@@ -982,10 +998,10 @@ export function registerRoutes(app: Express): Server {
       }
 
       await adminService.moderateUser(userId, action, req.user!.id, reason);
-      res.json({ success: true, message: `User ${action} action completed successfully` });
+      return res.json({ success: true, message: `User ${action} action completed successfully` });
     } catch (error) {
       console.error("Moderate user error:", error);
-      res.status(500).json({ error: "Failed to moderate user" });
+      return res.status(500).json({ error: "Failed to moderate user" });
     }
   });
 
@@ -996,10 +1012,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const alerts = await adminService.getSystemAlerts();
-      res.json(alerts);
+      return res.json(alerts);
     } catch (error) {
       console.error("Get system alerts error:", error);
-      res.status(500).json({ error: "Failed to fetch system alerts" });
+      return res.status(500).json({ error: "Failed to fetch system alerts" });
     }
   });
 
@@ -1016,10 +1032,10 @@ export function registerRoutes(app: Express): Server {
       }
 
       await adminService.sendSystemAnnouncement(title, message, priority, targetRole, req.user!.id);
-      res.json({ success: true, message: "System announcement sent successfully" });
+      return res.json({ success: true, message: "System announcement sent successfully" });
     } catch (error) {
       console.error("Send admin announcement error:", error);
-      res.status(500).json({ error: "Failed to send system announcement" });
+      return res.status(500).json({ error: "Failed to send system announcement" });
     }
   });
 
@@ -1031,10 +1047,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const limit = parseInt(req.query.limit as string) || 100;
       const log = await adminService.getModerationLog(limit);
-      res.json(log);
+      return res.json(log);
     } catch (error) {
       console.error("Get moderation log error:", error);
-      res.status(500).json({ error: "Failed to fetch moderation log" });
+      return res.status(500).json({ error: "Failed to fetch moderation log" });
     }
   });
 
@@ -1049,10 +1065,10 @@ export function registerRoutes(app: Express): Server {
       
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename=${type}-export-${new Date().toISOString().split('T')[0]}.json`);
-      res.json(data);
+      return res.json(data);
     } catch (error) {
       console.error("Export data error:", error);
-      res.status(500).json({ error: "Failed to export data" });
+      return res.status(500).json({ error: "Failed to export data" });
     }
   });
 
@@ -1076,7 +1092,7 @@ export function registerRoutes(app: Express): Server {
     const isOnline = wsService.isUserOnline(req.user!.id);
     const lastSeen = wsService.getUserLastSeen(req.user!.id);
 
-    res.json({
+    return res.json({
       isConnected: isOnline,
       lastSeen,
       onlineUsers: wsService.getOnlineUsers().map(u => ({
