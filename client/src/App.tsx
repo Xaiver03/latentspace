@@ -29,6 +29,7 @@ import IntegratedCommunityPage from "@/pages/integrated-community-page";
 import HomePage from "@/pages/home-page";
 import MagazineHomePage from "@/pages/magazine-home-page";
 import LatentInspiredHomePage from "@/pages/latent-inspired-home";
+import NewHomePage from "@/pages/new-homepage";
 import AuthPage from "@/pages/auth-page";
 import EventsPage from "@/pages/events-page";
 import { EventDetailPage } from "@/pages/event-detail-page";
@@ -56,14 +57,16 @@ import SuccessMetricsDashboardPage from "@/pages/success-metrics-dashboard-page"
 import ForbiddenPage from "@/pages/forbidden-page";
 import NotFound from "@/pages/not-found";
 import PerformanceReportPage from '@/pages/performance-report-page';
+import CMSManagementPage from '@/pages/cms-management-page';
 
 function Router() {
   return (
     <Switch>
       {/* 公开路由 */}
-      <Route path="/platform" component={MagazineHomePage} />
-      <Route path="/platform/" component={MagazineHomePage} />
+      <Route path="/platform" component={NewHomePage} />
+      <Route path="/platform/" component={NewHomePage} />
       <Route path="/platform/home-classic" component={HomePage} />
+      <Route path="/platform/home-magazine" component={MagazineHomePage} />
       <Route path="/platform/home-latent" component={LatentInspiredHomePage} />
       <Route path="/platform/auth" component={AuthPage} />
       <Route path="/platform/403" component={ForbiddenPage} />
@@ -132,6 +135,12 @@ function Router() {
       <RoleRoute 
         path="/platform/admin/performance-reports" 
         component={PerformanceReportPage}
+        roles={[USER_ROLES.ADMIN, USER_ROLES.SUPERADMIN]}
+      />
+      
+      <RoleRoute 
+        path="/platform/admin/cms" 
+        component={CMSManagementPage}
         roles={[USER_ROLES.ADMIN, USER_ROLES.SUPERADMIN]}
       />
       
